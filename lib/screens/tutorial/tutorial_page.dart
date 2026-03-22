@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:techtutorial/screens/AdsenseAd.dart';
 import 'package:techtutorial/screens/tutorial/content_widget.dart';
 
 import '../../core/meta_service.dart';
@@ -38,8 +39,7 @@ class _TutorialPageState extends State<TutorialPage>
     with SingleTickerProviderStateMixin {
   static final LinkedHashMap<String, TutorialData> _cache = LinkedHashMap();
   static const int _maxCacheSize = 20;
-  static const String tutorialsBaseUrl =
-      'https://json.revochamp.site/flutter/';
+  static const String tutorialsBaseUrl = 'https://json.revochamp.site/flutter/';
 
   TutorialData? _data;
   bool _isLoading = true;
@@ -249,10 +249,7 @@ class _TutorialPageState extends State<TutorialPage>
     _updateStructuredData();
     if (kIsWeb) {
       final parents = [
-        {
-          'name': 'Flutter Tutorials',
-          'url': 'https://revochamp.site/flutter',
-        },
+        {'name': 'Flutter Tutorials', 'url': 'https://revochamp.site/flutter'},
       ];
       MetaService.setBreadcrumbData(
         title: _data!.title,
@@ -407,7 +404,8 @@ class _TutorialPageState extends State<TutorialPage>
     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
     if (currentIndex > 0) {
       final prevSlug = topics[currentIndex - 1].slug;
-      context.go('/flutter/$prevSlug');
+      context.go('/tech/flutter/$prevSlug');
+      // context.go('/flutter/$prevSlug');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('This is the first tutorial')),
@@ -426,7 +424,8 @@ class _TutorialPageState extends State<TutorialPage>
     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
     if (currentIndex < topics.length - 1) {
       final nextSlug = topics[currentIndex + 1].slug;
-      context.go('/flutter/$nextSlug');
+      // context.go('/flutter/$nextSlug');
+      context.go('/tech/flutter/$nextSlug');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('You have completed all tutorials!')),
@@ -509,8 +508,17 @@ class _TutorialPageState extends State<TutorialPage>
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.white),
-                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            if (context.canPop()) {
+                              context.pop();
+                            } else {
+                              context.go('/tech');
+                            }
+                          },
                         ),
                         Expanded(
                           child: Text(
@@ -533,7 +541,9 @@ class _TutorialPageState extends State<TutorialPage>
                         IconButton(
                           icon: const Icon(Icons.copy, color: Colors.white70),
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: _data!.title));
+                            Clipboard.setData(
+                              ClipboardData(text: _data!.title),
+                            );
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Title copied')),
                             );
@@ -552,7 +562,9 @@ class _TutorialPageState extends State<TutorialPage>
                       value: _scrollProgress,
                       minHeight: 4,
                       backgroundColor: Colors.white.withOpacity(0.2),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.white,
+                      ),
                     ),
                   ),
                 ),
@@ -595,7 +607,9 @@ class _TutorialPageState extends State<TutorialPage>
             ],
           ),
         ),
-        child: isDesktop ? _buildDesktopLayout(theme) : _buildMobileLayout(theme),
+        child: isDesktop
+            ? _buildDesktopLayout(theme)
+            : _buildMobileLayout(theme),
       ),
     );
   }
@@ -613,7 +627,10 @@ class _TutorialPageState extends State<TutorialPage>
               color: Colors.white.withOpacity(0.85),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 12),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 12,
+                ),
               ],
             ),
             child: Column(
@@ -736,7 +753,8 @@ class _TutorialPageState extends State<TutorialPage>
                         const SizedBox(height: 40),
                         if (_data!.quiz.isNotEmpty) _buildQuizSection(),
                         if (_data!.faq.isNotEmpty) _buildFaqSection(),
-                        if (_data!.relatedSlugs.isNotEmpty) _buildRelatedSection(),
+                        if (_data!.relatedSlugs.isNotEmpty)
+                          _buildRelatedSection(),
                         const SizedBox(height: 30),
                         buildAdPlaceholder(height: 120, label: "Sponsored"),
                         _buildNavigationButtons(),
@@ -786,10 +804,12 @@ class _TutorialPageState extends State<TutorialPage>
                         final bool hasValidKey = idx < _headingKeys.length;
                         return ActionChip(
                           label: Text(heading.value),
-                          onPressed:
-                              hasValidKey ? () => _scrollToHeading(idx) : null,
-                          backgroundColor:
-                              const Color(0xFF2A5298).withOpacity(0.1),
+                          onPressed: hasValidKey
+                              ? () => _scrollToHeading(idx)
+                              : null,
+                          backgroundColor: const Color(
+                            0xFF2A5298,
+                          ).withOpacity(0.1),
                         );
                       }).toList(),
                     ),
@@ -826,11 +846,10 @@ class _TutorialPageState extends State<TutorialPage>
       if (item.type == ContentType.heading) {
         widgets.add(
           Container(
-            key: headingIdx < _headingKeys.length ? _headingKeys[headingIdx] : null,
-            child: ContentItemWidget(
-              item: item,
-              onCopy: _copyCode,
-            ),
+            key: headingIdx < _headingKeys.length
+                ? _headingKeys[headingIdx]
+                : null,
+            child: ContentItemWidget(item: item, onCopy: _copyCode),
           ),
         );
         headingIdx++;
@@ -847,10 +866,7 @@ class _TutorialPageState extends State<TutorialPage>
             ),
             child: Padding(
               padding: const EdgeInsets.all(6),
-              child: ContentItemWidget(
-                item: item,
-                onCopy: _copyCode,
-              ),
+              child: ContentItemWidget(item: item, onCopy: _copyCode),
             ),
           ),
         );
@@ -862,9 +878,7 @@ class _TutorialPageState extends State<TutorialPage>
           i % adFrequency == 0 &&
           _data!.content[i].type != ContentType.heading &&
           _data!.content[i - 1].type != ContentType.heading) {
-        widgets.add(
-          buildAdPlaceholder(height: 120, label: "Sponsored"),
-        );
+        widgets.add(buildAdPlaceholder(height: 120, label: "Sponsored"));
         widgets.add(const SizedBox(height: 20));
         adCounter++;
       }
@@ -891,12 +905,11 @@ class _TutorialPageState extends State<TutorialPage>
           onCopy: _copyCode,
           onRun: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Running code:\n${_codeController.text}'),
-              ),
+              SnackBar(content: Text('Running code:\n${_codeController.text}')),
             );
           },
-          onReset: () => setState(() => _codeController.text = _data!.defaultCode),
+          onReset: () =>
+              setState(() => _codeController.text = _data!.defaultCode),
         ),
       ],
     );
@@ -921,7 +934,9 @@ class _TutorialPageState extends State<TutorialPage>
             padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               'Answer all ${_data!.quiz.length} questions',
-              style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey[600]),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: Colors.grey[600],
+              ),
             ),
           ),
         for (int i = 0; i < _data!.quiz.length; i++)
@@ -979,9 +994,14 @@ class _TutorialPageState extends State<TutorialPage>
               ],
             ),
             child: Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              data: Theme.of(
+                context,
+              ).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                tilePadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 leading: CircleAvatar(
                   backgroundColor: const Color(0xFF2A5298).withOpacity(0.1),
@@ -992,7 +1012,10 @@ class _TutorialPageState extends State<TutorialPage>
                 ),
                 title: Text(
                   item['question'] ?? '',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
                 ),
                 children: [
                   Text(
@@ -1032,12 +1055,11 @@ class _TutorialPageState extends State<TutorialPage>
           children: _data!.relatedSlugs.map((slug) {
             return ActionChip(
               label: Text(
-                slug
-                    .replaceFirst('flutter-', '')
-                    .replaceFirst('-', ' '),
+                slug.replaceFirst('flutter-', '').replaceFirst('-', ' '),
               ),
               onPressed: () {
-                context.go('/flutter/$slug');
+                context.go('/tech/flutter/$slug');
+                // context.go('/flutter/$slug');
               },
               backgroundColor: const Color(0xFF2A5298).withOpacity(0.1),
               side: const BorderSide(color: Color(0xFF2A5298)),
@@ -1049,10 +1071,7 @@ class _TutorialPageState extends State<TutorialPage>
   }
 
   Widget _buildNavigationButtons() {
-    return NavigationButtons(
-      onPrevious: _goToPrevious,
-      onNext: _goToNext,
-    );
+    return NavigationButtons(onPrevious: _goToPrevious, onNext: _goToNext);
   }
 
   Widget buildAdPlaceholder({
@@ -1087,29 +1106,35 @@ class _TutorialPageState extends State<TutorialPage>
               ),
             ),
           ),
-          Center(
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.campaign_outlined, color: Colors.grey.shade500, size: 28),
-                      const SizedBox(height: 6),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
+    AdsenseAd(adSlot: "1234567890"),
+          // Center(
+          //   child: isLoading
+          //       ? const SizedBox(
+          //           width: 24,
+          //           height: 24,
+          //           child: CircularProgressIndicator(strokeWidth: 2),
+          //         )
+          //       : Column(
+          //           mainAxisSize: MainAxisSize.min,
+          //           children: [
+          //             Icon(
+          //               Icons.campaign_outlined,
+          //               color: Colors.grey.shade500,
+          //               size: 28,
+          //             ),
+          //             const SizedBox(height: 6),
+          //             Text(
+          //               label,
+          //               style: TextStyle(
+          //                 color: Colors.grey.shade600,
+          //                 fontSize: 13,
+          //                 fontWeight: FontWeight.w500,
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          // ),
+  
         ],
       ),
     );
