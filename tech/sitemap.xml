@@ -1,0 +1,1407 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Dart tutorials -->
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-introduction</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-installation</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-syntax</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-variables</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-operators</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-conditions</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-loops</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-functions</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-null-safety</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-list</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-set</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-map</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-collection-methods</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-spread-operator</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-collection-if-for</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-classes</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-constructors</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-inheritance</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-polymorphism</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-abstraction</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-encapsulation</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-mixins</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-interfaces</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-abstract-classes</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-lambdas</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-higher-order-functions</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-closures</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-async-await</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-future</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-stream</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-isolates</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-event-loop</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-exception-handling</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-custom-exceptions</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-generics</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-extension-methods</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-typedef</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-callable-classes</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-metadata</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-records</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-patterns</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-extension-types</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-enums</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-json</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-file-handling</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/dart-http</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Flutter tutorials -->
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-statefulwidget</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-statelesswidget</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-container</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-row-column</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-stack</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-listview</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-gridview</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-padding</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-expanded</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-mediaquery</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-navigator</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-theme</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-scaffold</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-appbar</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-futurebuilder</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-streambuilder</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://revochamp.site/tech/flutter/flutter-form</loc>
+    <lastmod>2026-03-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+<url>
+<loc>https://revochamp.site/tech/flutter/flutter-textfield</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-button</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-card</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-flexible-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-sizedbox-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-align-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-center-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-wrap-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-spacer-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-positioned-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-safearea-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-singlechildscrollview</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-layoutbuilder</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-image-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-icon-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-text-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-richtext</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-decoration</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-border-radius</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-gradient</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-named-routes</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-navigation-arguments</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-bottom-navigation-bar</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-drawer-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-tabbar</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-setstate</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-provider</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-riverpod</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-getx</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-texteditingcontroller</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-form-validation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-checkbox</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-radio-button</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-dropdown</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-http-api</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-json-parsing</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-async-await</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-future</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-stream</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-animations</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-hero-animation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-custom-widget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-responsive-design</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/flutter-performance</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-introduction</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-installation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-structure</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-state-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-reactive-state</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-simple-state</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-rx-types</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-workers</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-controller</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-lifecycle</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-bindings</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-navigation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-named-routes</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-route-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-navigation-arguments</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-dependency-injection</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-put</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-lazyput</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-find</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-snackbar</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-dialog</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-bottomsheet</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-middleware</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-services</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-storage</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-clean-architecture</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-getview-getwidget</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-form-validation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-internationalization</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-api-integration</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-state-mixin</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-testing</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-theming</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-navigation-transitions</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-vs-provider-vs-bloc</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-error-handling</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-loading-indicator</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-refresh-indicator</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-computed-state</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-state-persistence</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-smart-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-permanent-controller</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-authentication-flow</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-pagination</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-search-filter</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-rebuild-optimization</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-cli-tools</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-custom-rx-model</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-rx-workers-advanced</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-feature-modular-architecture</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-multi-module-project</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-with-firebase</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-with-rest-api-architecture</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-session-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-app-lifecycle</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-global-error-handler</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-network-retry</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-dynamic-ui-rendering</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-offline-support</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-memory-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-logging-debugging</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-route-observer</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/getx-flutter-web</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-introduction</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-architecture</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-installation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-cubit-vs-bloc</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-why-bloc</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-core-concepts</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-events</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-states</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-bloc-class</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-cubit</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-emit</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-equatable</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-provider</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-multiblocprovider</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-builder</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-listener</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-consumer</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-selector</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-context-read-watch</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-navigation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-route-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-navigation-events</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-clean-architecture</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-repository-pattern</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-usecase-layer</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-feature-based-structure</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-modular-architecture</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-multi-bloc-communication</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-dependency-injection</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-getit</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-injectable</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-api-integration</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-form-validation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-authentication</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-pagination</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-search-filter</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-upload-download</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-offline-support</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-session-management</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-streams</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-stream-transform</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-event-transformers</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-concurrency</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-error-handling</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-global-error-handler</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-performance</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-rebuild-optimization</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-lazy-loading</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-hydrated-bloc</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-local-storage</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-testing</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-unit-testing</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-mocktail</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-widget-testing</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-freezed</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-code-generation</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-logging</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-devtools</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-flutter-web</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-firebase</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-vs-getx</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-vs-provider</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+  <url>
+<loc>https://revochamp.site/tech/flutter/bloc-vs-riverpod</loc>
+    <lastmod>2026-03-20</lastmod>
+<changefreq>weekly</changefreq>
+ <priority>0.7</priority>
+</url>
+
+
+</urlset>
