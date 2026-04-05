@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="/tech/">
+
+  <!-- ═══════════════════════════════════════════════
+       CORE META
+  ═══════════════════════════════════════════════ -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>Flutter Tutorials, Dart Guide & UI Examples | Revochamp Tech</title>
+  <meta name="description" content="Master Flutter with expert step-by-step tutorials, real-world UI examples, API integration, GetX & Riverpod state management, and complete Dart guides for beginners to professionals.">
+  <meta name="keywords" content="Flutter tutorial, Dart tutorial, Flutter UI examples, Flutter GetX, Flutter Riverpod, Flutter API integration, Flutter beginners guide, Flutter state management, Dart programming, Flutter web, Flutter widgets">
+  <meta name="author" content="Revochamp Tech">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="theme-color" content="#0ea5e9">
+
+  <!-- ═══════════════════════════════════════════════
+       CANONICAL & VERIFICATION
+  ═══════════════════════════════════════════════ -->
+  <link rel="canonical" href="https://revochamp.site/tech/">
+  <meta name="google-site-verification" content="56YLlB_RvfQRzIYP_38zH5rvbOppQmeWgvZvlXYu358">
+
+  <!-- ═══════════════════════════════════════════════
+       OPEN GRAPH (Facebook, LinkedIn, WhatsApp)
+  ═══════════════════════════════════════════════ -->
+  <meta property="og:site_name" content="Revochamp Tech">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Flutter Tutorials & UI Examples | Revochamp Tech">
+  <meta property="og:description" content="Learn Flutter step by step — UI design, API integration, GetX, Riverpod, real projects, and complete Dart guides.">
+  <meta property="og:url" content="https://revochamp.site/tech/">
+  <meta property="og:image" content="https://revochamp.site/tech/preview.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Revochamp Tech – Flutter Tutorial Platform">
+
+  <!-- ═══════════════════════════════════════════════
+       TWITTER / X CARD
+  ═══════════════════════════════════════════════ -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@revochamp">
+  <meta name="twitter:creator" content="@revochamp">
+  <meta name="twitter:title" content="Flutter Tutorials & UI Examples | Revochamp Tech">
+  <meta name="twitter:description" content="Complete Flutter learning platform — widgets, state management, APIs, real projects & more.">
+  <meta name="twitter:image" content="https://revochamp.site/tech/preview.png">
+  <meta name="twitter:image:alt" content="Revochamp Tech Flutter Platform">
+
+  <!-- ═══════════════════════════════════════════════
+       PWA / ICONS / MANIFEST
+  ═══════════════════════════════════════════════ -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Revochamp Tech">
+  <meta name="application-name" content="Revochamp Tech">
+  <meta name="msapplication-TileColor" content="#0ea5e9">
+  <meta name="msapplication-TileImage" content="icons/Icon-192.png">
+
+  <!-- ═══════════════════════════════════════════════
+       PERFORMANCE: PRECONNECT & FONT
+  ═══════════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com">
+  <!-- Preload the Flutter bootstrap for faster startup -->
+  <link rel="preload" href="flutter_bootstrap.js" as="script">
+
+  <!-- ═══════════════════════════════════════════════
+       ADSENSE (deferred, non-blocking)
+  ═══════════════════════════════════════════════ -->
+  <script data-ad-client="ca-pub-XXXXXXXXXXXX"
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js">
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       STRUCTURED DATA — WebSite
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Revochamp Tech",
+    "url": "https://revochamp.site/tech/",
+    "description": "Flutter tutorials, Dart guides, UI examples, and real-world Flutter projects for beginners and professionals.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://revochamp.site/tech/search?q={search_term_string}"
+      },
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       STRUCTURED DATA — Organization
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Revochamp Tech",
+    "url": "https://revochamp.site/tech/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://revochamp.site/tech/icons/Icon-192.png",
+      "width": 192,
+      "height": 192
+    },
+    "sameAs": []
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       STRUCTURED DATA — EducationalOrganization / Course collection
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "Revochamp Tech",
+    "url": "https://revochamp.site/tech/",
+    "description": "A Flutter & Dart learning platform offering free tutorials, UI guides, and real-world project walkthroughs.",
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Flutter Learning Resources",
+      "itemListElement": [
+        {
+          "@type": "Course",
+          "name": "Flutter for Beginners",
+          "description": "Step-by-step Flutter tutorial series from zero to a working app.",
+          "provider": { "@type": "Organization", "name": "Revochamp Tech" },
+          "url": "https://revochamp.site/tech/",
+          "educationalLevel": "Beginner"
+        },
+        {
+          "@type": "Course",
+          "name": "Flutter State Management with GetX & Riverpod",
+          "description": "Master GetX and Riverpod state management in Flutter apps.",
+          "provider": { "@type": "Organization", "name": "Revochamp Tech" },
+          "url": "https://revochamp.site/tech/",
+          "educationalLevel": "Intermediate"
+        },
+        {
+          "@type": "Course",
+          "name": "Flutter API Integration",
+          "description": "Connect Flutter apps to REST APIs with real-world examples.",
+          "provider": { "@type": "Organization", "name": "Revochamp Tech" },
+          "url": "https://revochamp.site/tech/",
+          "educationalLevel": "Intermediate"
+        },
+        {
+          "@type": "Course",
+          "name": "Advanced Flutter UI Design",
+          "description": "Build pixel-perfect, responsive Flutter UIs with animations.",
+          "provider": { "@type": "Organization", "name": "Revochamp Tech" },
+          "url": "https://revochamp.site/tech/",
+          "educationalLevel": "Advanced"
+        }
+      ]
+    }
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       STRUCTURED DATA — BreadcrumbList
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://revochamp.site/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Tech Tutorials",
+        "item": "https://revochamp.site/tech/"
+      }
+    ]
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       STRUCTURED DATA — FAQPage
+  ═══════════════════════════════════════════════ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Flutter?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Flutter is Google's open-source UI toolkit for building natively compiled, multi-platform apps from a single Dart codebase — covering mobile, web, desktop, and embedded."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is this Flutter tutorial series free?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. All Flutter tutorials, Dart guides, and UI examples on Revochamp Tech are completely free to access."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What state management solutions are covered?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We cover GetX, Riverpod, Provider, BLoC, and setState — with real-world examples for each."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need prior experience to start?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Our beginner track starts from zero — Dart basics, Flutter installation, first widget — and progressively advances to production-level topics."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════
+       STYLES
+  ═══════════════════════════════════════════════ -->
+  <style>
+    /* ── Reset & base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand:        #0ea5e9;
+      --brand-dark:   #0284c7;
+      --accent:       #f97316;
+      --bg:           #020617;
+      --surface:      #0f172a;
+      --text:         #f8fafc;
+      --muted:        #94a3b8;
+      --radius:       14px;
+      --transition:   0.35s cubic-bezier(.4,0,.2,1);
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── SEO content card (visible before Flutter loads) ── */
+    #seo-content {
+      max-width: 860px;
+      margin: 48px auto;
+      padding: 36px 40px;
+      background: #fff;
+      color: #111;
+      line-height: 1.7;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      opacity: 1;
+      transition: opacity var(--transition);
+    }
+
+    #seo-content .badge {
+      display: inline-block;
+      background: var(--brand);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    #seo-content h1 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      color: #0f172a;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 14px;
+    }
+
+    #seo-content h1 span { color: var(--brand); }
+
+    #seo-content p {
+      color: #334155;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    #seo-content .topics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 20px 0;
+    }
+
+    #seo-content .tag {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+    }
+
+    #seo-content .faq { margin-top: 28px; }
+    #seo-content .faq h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 14px;
+    }
+
+    #seo-content details {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+
+    #seo-content summary {
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #1e293b;
+      user-select: none;
+    }
+
+    #seo-content summary::after {
+      content: '+';
+      font-size: 1.1rem;
+      color: var(--brand);
+      transition: transform 0.2s;
+    }
+
+    #seo-content details[open] summary::after { content: '−'; }
+
+    #seo-content details p {
+      padding: 4px 16px 14px;
+      margin: 0;
+      font-size: 0.88rem;
+      color: #475569;
+    }
+
+    /* ── Splash / loading overlay ── */
+    #flutter-splash {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      z-index: 9999;
+      opacity: 1;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      visibility: visible;
+    }
+
+    #flutter-splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-logo {
+      width: 72px;
+      height: 72px;
+      position: relative;
+    }
+
+    /* Flutter "F" diamond logo drawn in CSS */
+    .splash-logo svg { width: 100%; height: 100%; }
+
+    .splash-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: var(--text);
+    }
+
+    .splash-title span { color: var(--brand); }
+
+    .splash-bar-wrap {
+      width: 180px;
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .splash-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--brand), var(--accent));
+      border-radius: 999px;
+      animation: barSlide 2.2s ease-in-out infinite;
+    }
+
+    @keyframes barSlide {
+      0%   { width: 0%;   margin-left: 0; }
+      50%  { width: 70%;  margin-left: 0; }
+      100% { width: 0%;   margin-left: 100%; }
+    }
+
+    .splash-hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: .03em;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      #seo-content { margin: 20px 16px; padding: 24px 20px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ════════════════════════════════════════════════
+       SPLASH — shown instantly, dismissed on first frame
+  ════════════════════════════════════════════════ -->
+  <div id="flutter-splash" role="status" aria-label="Loading Revochamp Tech">
+    <div class="splash-logo">
+      <!-- Flutter-inspired diamond logo, pure SVG -->
+      <svg viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#0ea5e9"/>
+          </linearGradient>
+          <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#0ea5e9"/>
+            <stop offset="100%" stop-color="#0369a1"/>
+          </linearGradient>
+        </defs>
+        <!-- Top rhombus -->
+        <polygon points="36,4 62,30 36,30 10,30" fill="url(#g1)"/>
+        <!-- Upper half of bottom rhombus -->
+        <polygon points="36,34 62,60 49,60 23,34" fill="url(#g1)"/>
+        <!-- Lower half — darker -->
+        <polygon points="36,34 23,34 10,60 36,60" fill="url(#g2)"/>
+      </svg>
+    </div>
+    <div class="splash-title"><span>Revochamp</span> Tech</div>
+    <div class="splash-bar-wrap"><div class="splash-bar"></div></div>
+    <div class="splash-hint">Loading interactive Flutter tutorials…</div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       SEO CONTENT
+       Visible to crawlers & users before Flutter renders.
+       Hidden (not removed) once the app frame fires.
+  ════════════════════════════════════════════════ -->
+  <div id="seo-content" aria-hidden="false">
+
+    <span class="badge">Free · Flutter &amp; Dart</span>
+
+    <h1>
+      Flutter Tutorials, <span>Dart Guide</span><br>
+      &amp; Real-World UI Examples
+    </h1>
+
+    <p>
+      Build production-ready Flutter apps from scratch. Our step-by-step tutorials cover
+      everything from your first widget to advanced state management, REST API integration,
+      animations, and real-world project architecture — for all skill levels.
+    </p>
+
+    <p>
+      Whether you're a complete beginner or an experienced developer looking to deepen your
+      Flutter expertise, Revochamp Tech gives you practical, code-first learning paths.
+    </p>
+
+    <div class="topics" aria-label="Topics covered">
+      <span class="tag">Flutter Basics</span>
+      <span class="tag">Dart Programming</span>
+      <span class="tag">Widgets &amp; Layouts</span>
+      <span class="tag">GetX</span>
+      <span class="tag">Riverpod</span>
+      <span class="tag">Provider</span>
+      <span class="tag">BLoC Pattern</span>
+      <span class="tag">REST API</span>
+      <span class="tag">Firebase</span>
+      <span class="tag">Flutter Web</span>
+      <span class="tag">Animations</span>
+      <span class="tag">Responsive UI</span>
+    </div>
+
+    <div class="faq" itemscope itemtype="https://schema.org/FAQPage">
+
+      <h2>Frequently Asked Questions</h2>
+
+      <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <summary itemprop="name">What is Flutter and why should I learn it?</summary>
+        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+          <p itemprop="text">
+            Flutter is Google's open-source UI toolkit for building natively compiled apps across
+            mobile, web, desktop, and embedded platforms — all from a single Dart codebase.
+            It's fast, expressive, and backed by a massive ecosystem, making it one of the top
+            cross-platform frameworks to learn in 2024.
+          </p>
+        </div>
+      </details>
+
+      <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <summary itemprop="name">Are the tutorials free?</summary>
+        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+          <p itemprop="text">
+            Yes — every Flutter tutorial, Dart guide, and UI example on Revochamp Tech is
+            completely free with no account required.
+          </p>
+        </div>
+      </details>
+
+      <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <summary itemprop="name">Which state management solutions are covered?</summary>
+        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+          <p itemprop="text">
+            We cover GetX, Riverpod, Provider, BLoC, and plain setState — with practical,
+            real-world examples for each so you can choose the right tool for every project.
+          </p>
+        </div>
+      </details>
+
+      <details itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+        <summary itemprop="name">Do I need programming experience to start?</summary>
+        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+          <p itemprop="text">
+            No prior experience is needed. Our beginner track starts with Dart fundamentals,
+            Flutter installation, and your first widget, then progressively builds toward
+            production-level app architecture.
+          </p>
+        </div>
+      </details>
+
+    </div><!-- /.faq -->
+  </div><!-- /#seo-content -->
+
+  <!-- ════════════════════════════════════════════════
+       FLUTTER BOOTSTRAP (pure Flutter web — no other framework)
+  ════════════════════════════════════════════════ -->
+  <script src="flutter_bootstrap.js" defer></script>
+
+  <script>
+    (function () {
+      var splash = document.getElementById('flutter-splash');
+      var seo    = document.getElementById('seo-content');
+
+      // Dismiss splash + hide SEO block on first Flutter frame
+      window.addEventListener('flutter-first-frame', function () {
+        // Dismiss splash
+        if (splash) splash.classList.add('hidden');
+
+        // Fade out SEO block (keep in DOM for a11y / crawlers)
+        if (seo) {
+          seo.style.transition = 'opacity 0.4s ease';
+          seo.style.opacity    = '0';
+          seo.setAttribute('aria-hidden', 'true');
+          setTimeout(function () { seo.style.display = 'none'; }, 450);
+        }
+      });
+
+      // Safety net: hide splash after 8 s in case event never fires
+      setTimeout(function () {
+        if (splash && !splash.classList.contains('hidden')) {
+          splash.classList.add('hidden');
+        }
+      }, 8000);
+    })();
+  </script>
+
+</body>
+</html>
