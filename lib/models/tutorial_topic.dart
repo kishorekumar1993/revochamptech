@@ -4,6 +4,7 @@ class TutorialTopic {
   final String emoji;
   final String category;
   final String level;
+final double? estimatedHours; // <-- ADD THIS
 
   TutorialTopic({
     required this.slug,
@@ -11,6 +12,7 @@ class TutorialTopic {
     required this.emoji,
     required this.category,
     required this.level,
+required    this.estimatedHours,
   });
 
   factory TutorialTopic.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class TutorialTopic {
       emoji: json['emoji']?.toString() ?? '📘',
       category: json['category']?.toString() ?? 'Other',
       level: json['level']?.toString() ?? 'Other',
+      estimatedHours: (json['estimatedHours'] as num?)?.toDouble(), // <-- ADD
     );
   }
 }

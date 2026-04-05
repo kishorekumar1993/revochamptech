@@ -1,261 +1,1004 @@
-import 'dart:html' as html;
+// ==================== PRIVACY PAGE - SAME PATTERN AS ABOUT PAGE ====================
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import 'package:go_router/go_router.dart';
+import 'package:techtutorial/core/meta_service.dart';
+import 'package:techtutorial/core/theme.dart';
+import 'package:techtutorial/widget/footer_card.dart';
 
-class PrivacyPolicyPage extends StatefulWidget {
-  const PrivacyPolicyPage({super.key});
+class PrivacyPage extends StatefulWidget {
+  const PrivacyPage({super.key});
 
   @override
-  State<PrivacyPolicyPage> createState() => _PrivacyPolicyPageState();
+  State<PrivacyPage> createState() => _PrivacyPageState();
 }
 
-class _PrivacyPolicyPageState extends State<PrivacyPolicyPage> {
-
+class _PrivacyPageState extends State<PrivacyPage> {
   @override
   void initState() {
     super.initState();
-    _setSEO(); // 🔥 SEO injection
-  }
 
-  // --------------------------------------------------
-  // 🔥 SEO META TAGS (CRITICAL FOR ADSENSE + GOOGLE)
-  // --------------------------------------------------
-  void _setSEO() {
-    // Title
-    html.document.title = "Privacy Policy | Revochamp Flutter Tutorials";
-
-    // Description
-    _setMetaTag(
-      name: "description",
-      content:
-          "Read the Privacy Policy of Revochamp - a Flutter tutorial platform providing coding guides, examples, and developer resources.",
+    MetaService.updateMetaTags(
+      title: "Privacy Policy | RevoLearn Data Protection & Security",
+      description:
+          "Read RevoLearn privacy policy to understand how we collect, use, and protect your data securely.",
+      slug: "privacy",
     );
+    MetaService.setStructuredData({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Privacy Policy",
+      "description":
+          "Read RevoLearn privacy policy to understand how we collect, use, and protect your data securely.",
+      "url": "https://revochamp.site/tech/privacy",
+      "inLanguage": "en",
 
-    // Keywords
-    _setMetaTag(
-      name: "keywords",
-      content:
-          "Flutter privacy policy, Revochamp, Flutter tutorials, developer learning platform",
-    );
-
-    // Open Graph (for sharing)
-    _setMetaProperty(
-      property: "og:title",
-      content: "Privacy Policy | Revochamp",
-    );
-
-    _setMetaProperty(
-      property: "og:description",
-      content:
-          "Privacy policy of Revochamp Flutter tutorial platform.",
-    );
-
-    _setMetaProperty(
-      property: "og:type",
-      content: "website",
-    );
-
-    // Canonical URL
-    _setCanonical("https://revochamp.site/privacy-policy");
-
-    // Structured Data (SEO BOOST)
-    _addStructuredData();
-  }
-
-void _setMetaTag({required String name, required String content}) {
-  final existing = html.document.head!
-      .querySelector("meta[name='$name']");
-  if (existing != null) {
-    existing.setAttribute("content", content);
-  } else {
-    final meta = html.MetaElement()
-      ..name = name
-      ..content = content;
-    html.document.head!.append(meta);
-  }
-}
-
-  void _setMetaProperty({required String property, required String content}) {
-    final meta = html.MetaElement()
-      ..setAttribute("property", property)
-      ..content = content;
-    html.document.head!.append(meta);
-  }
-
-  void _setCanonical(String url) {
-    final link = html.LinkElement()
-      ..rel = "canonical"
-      ..href = url;
-    html.document.head!.append(link);
-  }
-
-  void _addStructuredData() {
-    final script = html.ScriptElement()
-      ..type = "application/ld+json"
-      ..text = '''
-      {
-        "@context": "https://schema.org",
+      "mainEntityOfPage": {
         "@type": "WebPage",
-        "name": "Privacy Policy - Revochamp",
-        "url": "https://revochamp.site/privacy-policy",
-        "description": "Privacy Policy for Revochamp Flutter tutorial platform."
-      }
-      ''';
+        "@id": "https://revochamp.site/tech/privacy",
+      },
 
-    html.document.head!.append(script);
+      "dateModified": "2026-01-01",
+
+      "publisher": {"@type": "Organization", "name": "RevoLearn"},
+    });
+    MetaService.setBreadcrumbData(
+      title: "Privacy Policy",
+      slug: "privacy",
+      parents: [
+        {"name": "Home", "url": "https://revochamp.site/tech"},
+      ],
+    );
   }
 
-  // --------------------------------------------------
-  // UI
-  // --------------------------------------------------
+  late bool isMobile;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    isMobile = MediaQuery.of(context).size.width < 600;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // final isMobile = MediaQuery.of(context).size.width < 600;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Privacy Policy"),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(gradient: primaryGradient),
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              theme.brightness == Brightness.dark
-                  ? Colors.grey[900]!
-                  : const Color(0xFFF8FAFC),
-              theme.brightness == Brightness.dark
-                  ? Colors.grey[850]!
-                  : const Color(0xFFEFF3F8),
-            ],
+      backgroundColor: Colors.white,
+      body: CustomScrollView(
+        slivers: [
+          // App Bar
+          SliverAppBar(
+            pinned: true,
+            backgroundColor: Colors.white.withOpacity(0.95),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            surfaceTintColor: Colors.transparent,
+
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new, size: 18),
+              color: PremiumTheme.textDark,
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
+              },
+            ),
+
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Privacy Policy",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: PremiumTheme.textDark,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  "Your data & security",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: PremiumTheme.textMuted,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+
+            centerTitle: false,
+
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                height: 1,
+                color: PremiumTheme.lightGray.withOpacity(0.6),
+              ),
+            ),
           ),
-        ),
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(child: _hero()),
-            SliverToBoxAdapter(child: _content()),
-          ],
-        ),
+          // Hero Section
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 24 : 80,
+                vertical: isMobile ? 50 : 70,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    PremiumTheme.richBlue.withValues(alpha: 0.05),
+                    Colors.white,
+                    PremiumTheme.softGray.withValues(alpha: 0.5),
+                  ],
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: PremiumTheme.richBlue,
+                      borderRadius: BorderRadius.circular(50),
+                      boxShadow: [
+                        BoxShadow(
+                          color: PremiumTheme.richBlue.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      "🔒 Your Privacy Matters",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  Text(
+                    "Protecting your",
+                    style: TextStyle(
+                      fontSize: isMobile ? 36 : 52,
+                      fontWeight: FontWeight.w800,
+                      color: PremiumTheme.textDark,
+                      letterSpacing: -0.5,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [PremiumTheme.richBlue, Color(0xff1e40af)],
+                    ).createShader(bounds),
+                    child: Text(
+                      "data & privacy.",
+                      style: TextStyle(
+                        fontSize: isMobile ? 36 : 52,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        height: 1.1,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: Text(
+                      "We are committed to protecting your personal information and being transparent about how we use it.",
+                      style: TextStyle(
+                        fontSize: isMobile ? 15 : 17,
+                        color: PremiumTheme.textMuted,
+                        height: 1.6,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Last updated: January 2026",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: PremiumTheme.textLight,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Key Principles Section
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 24 : 80,
+                vertical: 40,
+              ),
+              child: isMobile
+                  ? Column(
+                      children: [
+                        _buildPrincipleCard(isMobile),
+                        const SizedBox(height: 24),
+                        _buildPrincipleCard2(isMobile),
+                        const SizedBox(height: 24),
+                        _buildPrincipleCard3(isMobile),
+                      ],
+                    )
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _buildPrincipleCard(isMobile)),
+                        const SizedBox(width: 24),
+                        Expanded(child: _buildPrincipleCard2(isMobile)),
+                        const SizedBox(width: 24),
+                        Expanded(child: _buildPrincipleCard3(isMobile)),
+                      ],
+                    ),
+            ),
+          ),
+
+          // Main Policy Sections
+          SliverToBoxAdapter(
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 24 : 80,
+                vertical: 60,
+              ),
+              color: PremiumTheme.softGray,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Our Privacy Practices",
+                    style: TextStyle(
+                      fontSize: isMobile ? 26 : 34,
+                      fontWeight: FontWeight.w800,
+                      color: PremiumTheme.textDark,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "How we collect, use, and protect your information",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: PremiumTheme.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  _buildPolicyGrid(isMobile),
+                ],
+              ),
+            ),
+          ),
+
+          // Detailed Policy Sections
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 24 : 80,
+                vertical: 60,
+              ),
+              child: Column(
+                children: [
+                  _buildDataCollectionCard(isMobile),
+                  const SizedBox(height: 40),
+                  _buildDataUsageCard(isMobile),
+                  const SizedBox(height: 40),
+                  _buildDataSecurityCard(isMobile),
+                  const SizedBox(height: 40),
+                  _buildDataRightsCard(isMobile),
+                ],
+              ),
+            ),
+          ),
+
+          // Contact Section
+          SliverToBoxAdapter(
+            child: Container(
+              margin: EdgeInsets.symmetric(
+                horizontal: isMobile ? 20 : 20,
+                vertical: 20,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [PremiumTheme.richBlue, Color(0xff1e3a8a)],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: PremiumTheme.richBlue.withValues(alpha: 0.3),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 40),
+                    child: Text("📞", style: TextStyle(fontSize: 48)),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    "Questions About Your Privacy?",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "We're here to help with any privacy concerns",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      int crossAxisCount = constraints.maxWidth > 600 ? 2 : 1;
+                      return GridView.count(
+                        crossAxisCount: crossAxisCount,
+                        shrinkWrap: true,
+                        mainAxisSpacing: 20,
+                        crossAxisSpacing: 20,
+                        childAspectRatio: 3.0,
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.all(24),
+                        children: const [
+                          _ContactCard(
+                            email: "privacy@revolearn.com",
+                            icon: "🔒",
+                            label: "Privacy Concerns",
+                          ),
+                          _ContactCard(
+                            email: "data@revolearn.com",
+                            icon: "📊",
+                            label: "Data Requests",
+                          ),
+                          _ContactCard(
+                            email: "support@revolearn.com",
+                            icon: "💬",
+                            label: "General Support",
+                          ),
+                          _ContactCard(
+                            email: "security@revolearn.com",
+                            icon: "🛡️",
+                            label: "Security Issues",
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
+
+          // Footer
+          SliverToBoxAdapter(child: Footer(isMobile: isMobile)),
+        ],
       ),
     );
   }
 
-  // --------------------------------------------------
-  // HERO
-  // --------------------------------------------------
-  Widget _hero() {
+  Widget _buildPrincipleCard(bool isMobile) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
       decoration: BoxDecoration(
-        gradient: primaryGradient,
-        borderRadius:
-            const BorderRadius.vertical(bottom: Radius.circular(30)),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Privacy Policy 🔐",
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: PremiumTheme.richBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text("🔐", style: TextStyle(fontSize: 24)),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "Your Data is Safe",
             style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: PremiumTheme.textDark,
+              letterSpacing: -0.3,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 12),
           Text(
-            "How we collect, use and protect your data",
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+            "We use bank-level encryption to protect your information at all times.",
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 15,
+              color: PremiumTheme.textMuted,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
     );
   }
 
-  // --------------------------------------------------
-  // CONTENT CARD
-  // --------------------------------------------------
-  Widget _content() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900), // SEO readability
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+  Widget _buildPrincipleCard2(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: PremiumTheme.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            elevation: 4,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _title("Effective Date: March 22, 2026"),
-
-                  _section("1. Introduction"),
-                  _text(
-                      "Revochamp is a Flutter tutorial platform providing coding guides, examples, and developer resources."),
-
-                  _section("2. Information We Collect"),
-                  _text(
-                      "We collect basic usage data such as IP address, browser type, pages visited, and time spent."),
-
-                  _section("3. How We Use Data"),
-                  _text(
-                      "To improve tutorials, enhance user experience, and analyze traffic."),
-
-                  _section("4. Cookies"),
-                  _text(
-                      "We use cookies to improve performance and personalize experience."),
-
-                  _section("5. Google AdSense"),
-                  _text(
-                      "We display ads via Google AdSense which may use cookies to show relevant ads."),
-
-                  _section("6. Third-party Services"),
-                  _text(
-                      "We may use analytics and advertising tools for performance tracking."),
-
-                  _section("7. Security"),
-                  _text(
-                      "We implement security measures, but no system is fully secure."),
-
-                  _section("8. Contact"),
-                  _text("support@revochamp.site"),
-                ],
-              ),
+            child: const Text("👁️", style: TextStyle(fontSize: 24)),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "Full Transparency",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: PremiumTheme.textDark,
+              letterSpacing: -0.3,
             ),
           ),
-        ),
+          const SizedBox(height: 12),
+          Text(
+            "We're clear about what data we collect and why we need it.",
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 15,
+              color: PremiumTheme.textMuted,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // --------------------------------------------------
-  // UI HELPERS
-  // --------------------------------------------------
-  Widget _section(String text) => Padding(
-        padding: const EdgeInsets.only(top: 16),
-        child: Text(
-          text,
-          style: const TextStyle(
-              fontSize: 18, fontWeight: FontWeight.bold),
+  Widget _buildPrincipleCard3(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 20 : 28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: PremiumTheme.warning.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text("⚡", style: TextStyle(fontSize: 24)),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            "You're in Control",
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: PremiumTheme.textDark,
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Access, update, or delete your personal data anytime.",
+            style: TextStyle(
+              fontSize: isMobile ? 14 : 15,
+              color: PremiumTheme.textMuted,
+              height: 1.6,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPolicyGrid(bool isMobile) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = constraints.maxWidth > 900
+            ? 4
+            : (constraints.maxWidth > 600 ? 2 : 1);
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          mainAxisSpacing: 24,
+          crossAxisSpacing: 24,
+          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 2.5,
+          physics: const NeverScrollableScrollPhysics(),
+          children: const [
+            _PolicyCard(
+              emoji: "📋",
+              title: "Information Collection",
+              description:
+                  "We collect only essential data to provide and improve our services",
+            ),
+            _PolicyCard(
+              emoji: "🎯",
+              title: "Usage of Data",
+              description:
+                  "Your information helps personalize your learning experience",
+            ),
+            _PolicyCard(
+              emoji: "🛡️",
+              title: "Data Protection",
+              description:
+                  "Industry-standard security measures protect your information",
+            ),
+            _PolicyCard(
+              emoji: "✓",
+              title: "Your Rights",
+              description: "You have full control over your personal data",
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDataCollectionCard(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 24 : 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [PremiumTheme.richBlue.withValues(alpha: 0.05), Colors.white],
         ),
-      );
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: PremiumTheme.richBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text("📋", style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Information We Collect",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: PremiumTheme.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildBulletPoint(
+            "Account Information: Name, email address, and profile details you provide during registration",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Learning Data: Your course progress, quiz results, completion rates, and learning patterns",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Device Information: Device type, operating system, browser type, and unique device identifiers",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Usage Data: Pages visited, time spent on courses, features used, and interaction patterns",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Analytics: Anonymous analytics data to help us improve our platform and user experience",
+            isMobile,
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _text(String text) => Padding(
-        padding: const EdgeInsets.only(top: 6),
-        child: Text(text, style: const TextStyle(height: 1.6)),
-      );
+  Widget _buildDataUsageCard(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 24 : 32),
+      decoration: BoxDecoration(
+        color: PremiumTheme.softGray,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: PremiumTheme.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text("🎯", style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "How We Use Your Information",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: PremiumTheme.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildBulletPoint(
+            "To provide, maintain, and improve our educational services",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "To personalize your learning experience and course recommendations",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "To send important course updates, progress reports, and educational communications",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "To analyze usage patterns and optimize our platform performance",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "To comply with legal obligations and protect our users' rights",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "To prevent fraud and ensure platform security",
+            isMobile,
+          ),
+        ],
+      ),
+    );
+  }
 
-  Widget _title(String text) => Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.w600),
-      );
+  Widget _buildDataSecurityCard(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 24 : 32),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [PremiumTheme.richBlue.withValues(alpha: 0.05), Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: PremiumTheme.richBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text("🛡️", style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Data Security & Protection",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: PremiumTheme.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildBulletPoint(
+            "We implement industry-standard security measures including AES-256 encryption",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "All data is encrypted in transit using TLS 1.3 and at rest using secure storage",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "We conduct regular security audits, penetration testing, and vulnerability assessments",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Access to personal data is strictly restricted to authorized personnel only",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "We fully comply with GDPR, CCPA, and other international privacy regulations",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Regular backups ensure your data is never lost",
+            isMobile,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDataRightsCard(bool isMobile) {
+    return Container(
+      padding: EdgeInsets.all(isMobile ? 24 : 32),
+      decoration: BoxDecoration(
+        color: PremiumTheme.softGray,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: PremiumTheme.success.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text("✓", style: TextStyle(fontSize: 24)),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Your Rights & Choices",
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: PremiumTheme.textDark,
+                  letterSpacing: -0.3,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          _buildBulletPoint(
+            "Right to Access: Request a complete copy of your personal data",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Right to Rectify: Update or correct any inaccurate information",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Right to Erasure: Request permanent deletion of your data",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Right to Restrict: Limit how we use your data for specific purposes",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Right to Portability: Export your data in a machine-readable format",
+            isMobile,
+          ),
+          _buildBulletPoint(
+            "Right to Object: Opt-out of certain data processing activities",
+            isMobile,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBulletPoint(String text, bool isMobile) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 6, right: 12),
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: PremiumTheme.richBlue,
+              shape: BoxShape.circle,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: isMobile ? 13 : 14,
+                color: PremiumTheme.textMuted,
+                height: 1.6,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==================== POLICY CARD COMPONENT ====================
+class _PolicyCard extends StatelessWidget {
+  final String emoji;
+  final String title;
+  final String description;
+
+  const _PolicyCard({
+    required this.emoji,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: PremiumTheme.lightGray, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 36)),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: PremiumTheme.textDark,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            description,
+            style: const TextStyle(
+              fontSize: 13,
+              color: PremiumTheme.textMuted,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ==================== CONTACT CARD COMPONENT ====================
+class _ContactCard extends StatelessWidget {
+  final String email;
+  final String icon;
+  final String label;
+
+  const _ContactCard({
+    required this.email,
+    required this.icon,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white70,
+                  ),
+                ),
+                Text(
+                  email,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

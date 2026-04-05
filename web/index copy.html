@@ -6,55 +6,41 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- 
-    ==================================================
-    STATIC FALLBACK SEO TAGS
-    These will be overwritten by MetaService once the
-    Flutter app loads and on every route change.
-    ==================================================
-  -->
   <title>Flutter Tutorials, Dart Guide, UI Examples | Revochamp Tech</title>
+
   <meta name="description" content="Learn Flutter with step-by-step tutorials, UI examples, API integration, and real-world projects. Complete Dart and Flutter guide for beginners and professionals.">
   <meta name="keywords" content="Flutter tutorial, Dart tutorial, Flutter UI, Flutter API, GetX tutorial, Flutter examples">
   <meta name="robots" content="index, follow">
   <link rel="canonical" href="https://revochamp.site/tech/">
-
-  <!-- Google Site Verification (static, required) -->
-  <meta name="google-site-verification" content="56YLlB_RvfQRzIYP_38zH5rvbOppQmeWgvZvlXYu358">
-
-  <!-- Open Graph (fallback) -->
-  <meta property="og:site_name" content="Revochamp">
+  <meta name="google-site-verification" content="56YLlB_RvfQRzIYP_38zH5rvbOppQmeWgvZvlXYu358" />
+<meta property="og:site_name" content="Revochamp">
+<meta name="application-name" content="Revochamp">
+<link rel="icon" href="favicon.ico">
+  <!-- Open Graph -->
   <meta property="og:title" content="Flutter Tutorials & Examples | Revochamp Tech">
   <meta property="og:description" content="Learn Flutter step by step with real examples, UI designs, and API integration.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://revochamp.site/tech/">
   <meta property="og:image" content="https://revochamp.site/tech/preview.png">
 
-  <!-- Twitter (fallback) -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Flutter Tutorials & Examples | Revochamp Tech">
   <meta name="twitter:description" content="Complete Flutter learning platform with real projects.">
   <meta name="twitter:image" content="https://revochamp.site/tech/preview.png">
 
-  <!-- Application metadata -->
-  <meta name="application-name" content="Revochamp">
-
   <!-- Icons / Manifest -->
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
   <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
 
-  <!-- Preconnect for performance -->
+  <!-- Preconnect to external domains (no preload of main.dart.js!) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- AdSense – replace with your publisher ID -->
-  <script data-ad-client="ca-pub-XXXXXXXXXXXX"
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js">
-  </script>
-
+<script data-ad-client="ca-pub-XXXXXXXXXXXX"
+        async
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js">
+</script>
   <style>
     body {
       margin: 0;
@@ -78,6 +64,13 @@
     #seo-content h1 {
       color: #007aff;
       margin-bottom: 16px;
+    }
+
+    .hero-img {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin-top: 20px;
     }
 
     #app-loader {
@@ -133,7 +126,6 @@
 
 <body>
 
-  <!-- Visible placeholder content – hidden once Flutter loads -->
   <div id="seo-content">
     <h1>Flutter Tutorials, Dart Guide & UI Examples</h1>
     <p>
@@ -153,42 +145,10 @@
     </div>
   </div>
 
-  <!-- Flutter bootstrap script -->
   <script src="flutter_bootstrap.js" defer></script>
 
-  <!-- DEBUGGING SCRIPTS (remove in production if desired) -->
   <script>
     (function() {
-      // ---- 1. Watch for changes in <head> and log them ----
-      const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-          if (mutation.type === 'attributes') {
-            console.log(`🔄 HEAD attribute changed: ${mutation.attributeName} on ${mutation.target.tagName}`);
-          } else if (mutation.type === 'childList') {
-            mutation.addedNodes.forEach(node => {
-              if (node.nodeType === 1) { // element node
-                console.log(`➕ Added to HEAD: ${node.tagName}`, node);
-              }
-            });
-            mutation.removedNodes.forEach(node => {
-              if (node.nodeType === 1) {
-                console.log(`➖ Removed from HEAD: ${node.tagName}`, node);
-              }
-            });
-          }
-        });
-      });
-      observer.observe(document.head, { childList: true, subtree: true, attributes: true });
-
-      // ---- 2. Log initial head state ----
-      console.log('🎯 Initial head:', {
-        title: document.title,
-        description: document.querySelector('meta[name="description"]')?.content,
-        canonical: document.querySelector('link[rel="canonical"]')?.href,
-        ogTitle: document.querySelector('meta[property="og:title"]')?.content,
-      });
-
-      // ---- 3. Handle Flutter first frame (hide placeholder and loader) ----
       const seo = document.getElementById('seo-content');
       const loader = document.getElementById('app-loader');
 
@@ -197,7 +157,6 @@
       }, 500);
 
       window.addEventListener('flutter-first-frame', () => {
-        console.log('✅ flutter-first-frame received – hiding static content');
         clearTimeout(loaderTimeout);
         if (loader) loader.classList.remove('visible');
         if (seo) {
