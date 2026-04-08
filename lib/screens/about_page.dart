@@ -13,48 +13,60 @@ class AboutPage extends StatefulWidget {
 }
 
 class _AboutPageState extends State<AboutPage> {
-  @override
-  void initState() {
-    super.initState();
-    MetaService.updateMetaTags(
-      title: "About RevoLearn | Free Tech Learning Platform",
-      description:
-          "Learn about RevoLearn's mission, vision, and commitment to providing free, industry-ready tech education for everyone.",
-      slug: "about",
-    );
+ @override
+void initState() {
+  super.initState();
 
-    MetaService.setStructuredData({
-      "@context": "https://schema.org",
-      "@type": "AboutPage",
-      "name": "About RevoLearn",
-      "url": "https://revochamp.site/tech/about",
-      "description":
-          "Learn about RevoLearn mission, vision and free education platform.",
-      "inLanguage": "en",
+  const String aboutOgImage = 'https://revochamp.site/tech/about-og.png';
 
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https://revochamp.site/tech/about",
+  MetaService.updateMetaTags(
+    title: "About RevoChamp | Free Tech Learning Platform",
+    description:
+        "Learn about RevoChamp's mission, vision, and commitment to providing free, industry-ready tech education for everyone.",
+    slug: "about",
+    imageUrl: aboutOgImage,
+    isArticle: false,
+  );
+
+  MetaService.setRobotsMeta('index, follow, max-image-preview:large');
+
+  MetaService.setBreadcrumbData(
+    title: "About",
+    slug: "about",
+    parents: [
+      {"name": "Home", "url": "https://revochamp.site/tech"},
+    ],
+  );
+
+  MetaService.setStructuredData({
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "About RevoChamp",
+    "url": "https://revochamp.site/tech/about",
+    "description":
+        "Learn about RevoChamp mission, vision and free education platform.",
+    "inLanguage": "en",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://revochamp.site/tech/about"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "RevoChamp",
+      "url": "https://revochamp.site",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://revochamp.site/tech/logo.png"
       },
-
-      "publisher": {"@type": "Organization", "name": "RevoLearn"},
-    });
-
-    MetaService.setBreadcrumbData(
-      title: "About",
-      slug: "about",
-      parents: [
-        {"name": "Home", "url": "https://revochamp.site/tech"},
-      ],
-    );
-    MetaService.setBreadcrumbData(
-      title: "About",
-      slug: "about",
-      parents: [
-        {"name": "Home", "url": "https://revochamp.site/tech"},
-      ],
-    );
-  }
+      "foundingDate": "2023",
+      "sameAs": [
+        "https://twitter.com/revochamp",
+        "https://www.facebook.com/revochamp",
+        "https://www.linkedin.com/company/revochamp"
+      ]
+    }
+  }, id: 'about-page-schema');
+}
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +79,7 @@ class _AboutPageState extends State<AboutPage> {
           // App Bar
           SliverAppBar(
             pinned: true,
-            backgroundColor: Colors.white.withOpacity(0.95),
+            backgroundColor: Colors.white.withValues(alpha:0.95),
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
@@ -88,7 +100,7 @@ class _AboutPageState extends State<AboutPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: const [
                 Text(
-                  "About RevoLearn",
+                  "About RevoChamp",
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -114,7 +126,7 @@ class _AboutPageState extends State<AboutPage> {
               preferredSize: const Size.fromHeight(1),
               child: Container(
                 height: 1,
-                color: PremiumTheme.lightGray.withOpacity(0.6),
+                color: PremiumTheme.lightGray.withValues(alpha:0.6),
               ),
             ),
           ),
@@ -251,7 +263,7 @@ class _AboutPageState extends State<AboutPage> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Text(
-                    "Why Choose RevoLearn?",
+                    "Why Choose RevoChamp?",
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
@@ -346,7 +358,7 @@ class _AboutPageState extends State<AboutPage> {
                         shrinkWrap: true,
                         mainAxisSpacing: 30,
                         crossAxisSpacing: 20,
-                        childAspectRatio: 2.0,
+                        childAspectRatio:constraints.maxWidth > 600 ? 2.0:1.3,
                         physics: const NeverScrollableScrollPhysics(),
                         children: const [
                           _StatCard(
@@ -626,7 +638,7 @@ class _AboutPageState extends State<AboutPage> {
           ),
           const SizedBox(height: 20),
           Text(
-            "RevoLearn was founded with a simple belief: quality education should not be limited by cost. Built by passionate developers and educators, the platform was created to bridge the gap between learning and real-world skills.",
+            "RevoChamp was founded with a simple belief: quality education should not be limited by cost. Built by passionate developers and educators, the platform was created to bridge the gap between learning and real-world skills.",
             style: TextStyle(
               fontSize: isMobile ? 14 : 15,
               color: PremiumTheme.textMuted,
@@ -636,7 +648,7 @@ class _AboutPageState extends State<AboutPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            "Today, RevoLearn has grown into a global learning platform, helping thousands of learners across 50+ countries gain practical skills, advance their careers, and unlock new opportunities.",
+            "Today, RevoChamp has grown into a global learning platform, helping thousands of learners across 50+ countries gain practical skills, advance their careers, and unlock new opportunities.",
             style: TextStyle(
               fontSize: isMobile ? 14 : 15,
               color: PremiumTheme.textMuted,
@@ -738,7 +750,7 @@ class _AboutPageState extends State<AboutPage> {
           shrinkWrap: true,
           mainAxisSpacing: 24,
           crossAxisSpacing: 24,
-          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 2.5,
+          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 1.9,
 
           physics: const NeverScrollableScrollPhysics(),
           children: const [
@@ -794,7 +806,7 @@ class _AboutPageState extends State<AboutPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            "I started with no coding background. RevoLearn helped me build real projects and gain confidence. Within months, I landed my first developer job.",
+            "I started with no coding background. RevoChamp helped me build real projects and gain confidence. Within months, I landed my first developer job.",
             style: TextStyle(
               fontSize: isMobile ? 14 : 15,
               color: PremiumTheme.textMuted,

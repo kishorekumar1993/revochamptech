@@ -196,17 +196,34 @@
         if (loader) loader.classList.add('visible');
       }, 500);
 
-      window.addEventListener('flutter-first-frame', () => {
-        console.log('✅ flutter-first-frame received – hiding static content');
-        clearTimeout(loaderTimeout);
-        if (loader) loader.classList.remove('visible');
-        if (seo) {
-          seo.style.opacity = '0';
-          setTimeout(() => {
-            seo.style.display = 'none';
-          }, 500);
-        }
-      });
+window.addEventListener('flutter-first-frame', () => {
+  console.log('flutter-first-frame received');
+
+  clearTimeout(loaderTimeout);
+  if (loader) loader.classList.remove('visible');
+
+  // 🔥 ADD THIS FUNCTION
+  function isBot() {
+    const ua = navigator.userAgent.toLowerCase();
+    return (
+      ua.includes('googlebot') ||
+      ua.includes('bingbot') ||
+      ua.includes('crawler') ||
+      ua.includes('spider') ||
+      ua.includes('facebookexternalhit') ||
+      ua.includes('twitterbot') ||
+      ua.includes('linkedinbot')
+    );
+  }
+
+  // ✅ FIX: hide only for users
+  if (seo && !isBot()) {
+    seo.style.opacity = '0';
+    setTimeout(() => {
+      seo.style.display = 'none';
+    }, 500);
+  }
+});
 
       setTimeout(() => {
         if (loader && loader.classList.contains('visible')) {

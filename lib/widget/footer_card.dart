@@ -63,7 +63,7 @@ void showSnackBar(String message, BuildContext context) {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha:0.15),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -199,7 +199,7 @@ Widget buildFooter(BuildContext context, bool isMobile) {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: const [
             Text(
-              "© 2026 RevoLearn. All rights reserved.",
+              "© 2026 RevoChamp. All rights reserved.",
               style: TextStyle(
                 color: Color(0xff94a3b8),
                 fontSize: 12,
@@ -281,7 +281,7 @@ Widget _buildLogo() {
       ),
       const SizedBox(width: 10),
       const Text(
-        "RevoLearn",
+        "RevoChamp",
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,

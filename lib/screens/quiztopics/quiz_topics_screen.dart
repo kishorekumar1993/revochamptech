@@ -1,6 +1,7 @@
-// lib/screens/topics/topics_screen.dart - SEO OPTIMIZED VERSION
+// lib/screens/quiztopics/quiz_topics_screen.dart
 import 'dart:async';
 import 'dart:convert';
+// ignore: deprecated_member_use
 import 'dart:html' as html;
 
 import 'package:flutter/foundation.dart';
@@ -9,49 +10,78 @@ import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:techtutorial/core/meta_service.dart';
+import 'package:techtutorial/screens/quiztopics/quiz_topic_card.dart';
 
 import '../../models/topic_screen_config.dart';
 import '../../models/tutorial_topic.dart';
 import '../../utils/json_parser.dart';
 import '../../core/theme.dart';
-import 'topic_card.dart';
 
 // ==================== SEO CONFIGURATION ====================
-class TopicSEOConfig {
+class QuizTopicSEOConfig {
   final String category;
   final int topicCount;
   final List<String> popularTopics;
   
-  TopicSEOConfig({
+  QuizTopicSEOConfig({
     required this.category,
     required this.topicCount,
     required this.popularTopics,
   });
   
-  String get canonicalUrl => 'https://revochamp.site/tech/${category.toLowerCase()}';
-  String get ogImageUrl => 'https://revochamp.site/tech/og-images/${category.toLowerCase()}.png';
+  String get canonicalUrl => 'https://revochamp.site/mock-interview/${category.toLowerCase()}';
+  String get ogImageUrl => 'https://revochamp.site/og-images/mock-interview/${category.toLowerCase()}.png';
   
   String get pageTitle => 
-      '${_capitalize(category)} Tutorials | Learn ${_capitalize(category)} Programming | RevoChamp';
+      '${_capitalize(category)} Mock Interview Tests | Practice Technical Interviews | RevoChamp';
   
   String get metaDescription => 
-      'Master ${_capitalize(category)} with $topicCount+ free tutorials. '
-      'Learn ${popularTopics.take(3).join(', ')}, and more. '
-      'Step-by-step guides, practical examples, and best practices for beginners to advanced developers.';
+      'Prepare for ${_capitalize(category)} interviews with $topicCount+ mock tests. '
+      'Practice ${popularTopics.take(3).join(', ')}, and more. '
+      'Get instant AI feedback, detailed explanations, and FAANG-style questions. Free interview preparation.';
   
   List<String> get keywords => [
     category.toLowerCase(),
-    '$category tutorials',
-    'learn $category',
-    '$category programming',
-    '$category guide',
-    '$category examples',
-    '$category course',
-    '$category for beginners',
-    'advanced $category',
+    '$category mock interview',
+    '$category interview questions',
+    '$category technical interview',
+    'FAANG interview prep',
+    'coding interview practice',
     ...popularTopics.map((t) => '$category $t'),
-    'free $category tutorials',
-    'online $category course',
+    'free mock interview',
+    'interview simulator',
+    'technical interview preparation',
+  ];
+  
+  List<Map<String, String>> get faqs => [
+    {
+      "question": "What ${_capitalize(category)} mock interview tests are available?",
+      "answer": "We offer $topicCount+ ${_capitalize(category)} mock interview tests covering ${popularTopics.take(5).join(', ')}. Each test simulates real technical interviews with timed questions, instant feedback, and detailed explanations."
+    },
+    {
+      "question": "How do I prepare for a ${_capitalize(category)} technical interview?",
+      "answer": "Start with beginner-friendly mock tests, review the explanations for each answer, and gradually move to advanced tests. Practice regularly, focus on understanding concepts rather than memorization, and use our AI feedback to identify weak areas."
+    },
+    {
+      "question": "Are these ${_capitalize(category)} interview questions similar to FAANG interviews?",
+      "answer": "Yes! Our questions are curated by FAANG interviewers and cover the exact topics, difficulty levels, and question patterns used by Google, Meta, Amazon, Apple, and Netflix. Each test includes real-world scenarios and edge cases."
+    },
+    {
+      "question": "How long does each mock interview test take?",
+      "answer": "Test durations vary from 15-60 minutes depending on the topic and difficulty level. We recommend completing tests in one sitting to simulate real interview conditions, but you can pause and resume anytime."
+    },
+    {
+      "question": "Will I get a score and feedback after completing a test?",
+      "answer": "Absolutely! After each test, you'll receive a comprehensive score report including percentage, points earned, accuracy rate, time taken, and detailed feedback on each question with explanations for correct and incorrect answers."
+    },
+    {
+      "question": "Can I retake the mock interview tests?",
+      "answer": "Yes! You can retake any test unlimited times. We recommend spacing out retakes to measure improvement and focusing on understanding the explanations before attempting again."
+    },
+    {
+      "question": "Is this mock interview preparation free?",
+      "answer": "Yes! All $topicCount+ ${_capitalize(category)} mock interview tests on RevoChamp are completely free. We believe in democratizing interview preparation and helping developers land their dream jobs."
+    },
   ];
   
   static String _capitalize(String text) {
@@ -60,17 +90,15 @@ class TopicSEOConfig {
   }
 }
 
-class TopicsScreen extends StatefulWidget {
+class QuizTopicsScreen extends StatefulWidget {
   final String category;
 
-  const TopicsScreen({super.key, required this.category});
+  const QuizTopicsScreen({super.key, required this.category});
   
   // ============ CACHE MANAGEMENT ============
   static final Map<String, List<TutorialTopic>> _cachedTopics = {};
-  static final Map<String, TopicSEOConfig> _seoConfigCache = {};
-  static bool _organizationSchemaSet = false;
-  static bool _sitemapReferenceSet = false;
-  static bool _preconnectSet = false;
+  static final Map<String, QuizTopicSEOConfig> _seoConfigCache = {};
+  static bool _globalSEOSetup = false;
   
   static List<TutorialTopic> getTopicsByCategory(String category) {
     return _cachedTopics[category.toLowerCase()] ?? [];
@@ -79,15 +107,14 @@ class TopicsScreen extends StatefulWidget {
   static void clearCache() {
     _cachedTopics.clear();
     _seoConfigCache.clear();
-    _organizationSchemaSet = false;
   }
 
   @override
-  State<TopicsScreen> createState() => _TopicsScreenState();
+  State<QuizTopicsScreen> createState() => _QuizTopicsScreenState();
 }
 
-class _TopicsScreenState extends State<TopicsScreen>
-    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+class _QuizTopicsScreenState extends State<QuizTopicsScreen>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin, WidgetsBindingObserver {
   
   @override
   bool get wantKeepAlive => true;
@@ -96,7 +123,7 @@ class _TopicsScreenState extends State<TopicsScreen>
   List<TutorialTopic> allTopics = [];
   Map<String, List<TutorialTopic>> groupedTopics = {};
   Map<String, List<TutorialTopic>> groupedFilteredTopics = {};
-  late TopicSEOConfig _seoConfig;
+  late QuizTopicSEOConfig _seoConfig;
 
   // UI state
   final TextEditingController _searchController = TextEditingController();
@@ -118,50 +145,50 @@ class _TopicsScreenState extends State<TopicsScreen>
 
   // Pagination
   int _displayCount = 20;
-  final int _itemsPerPage = 20;
   
-  // Analytics tracking
+  // Analytics
   int _pageLoadStartTime = 0;
   int _scrollDepth = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _pageLoadStartTime = DateTime.now().millisecondsSinceEpoch;
-    _seoConfig = TopicSEOConfig(
+    _seoConfig = QuizTopicSEOConfig(
       category: widget.category,
       topicCount: 0,
       popularTopics: [],
     );
-    _setupGlobalSEOOnce();
-    _setupSEOTags();
+    _setupGlobalSEO();
+    _setupPageSEO();
     _loadConfiguration();
     _initAll();
     _setupAnimations();
-    _scrollController.addListener(_onScroll);
+    _scrollController.addListener(_onScrollWithTracking);
     _trackPageView();
   }
 
-  // ==================== GLOBAL SEO SETUP (RUN ONCE) ====================
-  void _setupGlobalSEOOnce() {
+  // ==================== GLOBAL SEO SETUP ====================
+  void _setupGlobalSEO() {
     if (!kIsWeb) return;
+    if (QuizTopicsScreen._globalSEOSetup) return;
     
     _setDocumentLanguage();
     _addSitemapReference();
     _addPreconnectUrls();
-    _addResourceHints();
     _setVerificationTags();
+    
+    QuizTopicsScreen._globalSEOSetup = true;
   }
 
   void _setDocumentLanguage() {
     if (!kIsWeb) return;
     html.document.documentElement?.lang = 'en';
-    html.document.documentElement?.setAttribute('prefix', 'og: http://ogp.me/ns#');
   }
 
   void _addSitemapReference() {
     if (!kIsWeb) return;
-    if (TopicsScreen._sitemapReferenceSet) return;
     
     final existing = html.document.querySelector('link[rel="sitemap"]');
     if (existing != null) return;
@@ -171,19 +198,15 @@ class _TopicsScreenState extends State<TopicsScreen>
       ..type = 'application/xml'
       ..href = 'https://revochamp.site/sitemap.xml';
     html.document.head?.append(sitemapLink);
-    
-    TopicsScreen._sitemapReferenceSet = true;
   }
 
   void _addPreconnectUrls() {
     if (!kIsWeb) return;
-    if (TopicsScreen._preconnectSet) return;
     
     final urls = [
       'https://json.revochamp.site',
       'https://fonts.googleapis.com',
       'https://fonts.gstatic.com',
-      'https://cdnjs.cloudflare.com',
     ];
     
     for (final url in urls) {
@@ -195,31 +218,15 @@ class _TopicsScreenState extends State<TopicsScreen>
         ..href = url;
       html.document.head?.append(link);
       
-      // Add DNS-prefetch as fallback
       final dnsLink = html.LinkElement()
         ..rel = 'dns-prefetch'
         ..href = url;
       html.document.head?.append(dnsLink);
     }
-    
-    TopicsScreen._preconnectSet = true;
-  }
-
-  void _addResourceHints() {
-    if (!kIsWeb) return;
-    
-    // Preload critical fonts
-    final fontPreload = html.LinkElement()
-      ..rel = 'preload'
-      ..as = 'font'
-      ..href = 'https://fonts.gstatic.com/s/roboto/v30/KFOmCnqEu92Fr1Mu4mxK.woff2'
-      ..setAttribute('crossorigin', 'anonymous');
-    html.document.head?.append(fontPreload);
   }
 
   void _setVerificationTags() {
     if (!kIsWeb) return;
-    if (TopicsScreen._organizationSchemaSet) return;
     
     MetaService.setVerificationTags(
       google: 'YOUR_GOOGLE_VERIFICATION_CODE',
@@ -227,14 +234,12 @@ class _TopicsScreenState extends State<TopicsScreen>
     );
   }
 
-  // ==================== PAGE-SPECIFIC SEO SETUP ====================
-  void _setupSEOTags() {
+  // ==================== PAGE SEO SETUP ====================
+  void _setupPageSEO() {
     if (!kIsWeb) return;
     
     _addH1Tag();
     _updateMetaTags();
-    _setOrganizationSchemaOnce();
-    _setBreadcrumbSchema();
   }
 
   void _addH1Tag() {
@@ -244,7 +249,7 @@ class _TopicsScreenState extends State<TopicsScreen>
     existing?.remove();
 
     final h1 = html.HeadingElement.h1()
-      ..text = '${_capitalize(widget.category)} Tutorials - Learn ${_capitalize(widget.category)} Programming'
+      ..text = '${_capitalize(widget.category)} Mock Interview Tests - Technical Interview Preparation'
       ..className = 'seo-h1'
       ..style.position = 'absolute'
       ..style.left = '-9999px'
@@ -256,32 +261,13 @@ class _TopicsScreenState extends State<TopicsScreen>
     html.document.body?.append(h1);
   }
 
-  void _addH2Tag(String text) {
-    if (!kIsWeb) return;
-    
-    final existing = html.document.querySelector('.seo-h2');
-    existing?.remove();
-
-    final h2 = html.HeadingElement.h2()
-      ..text = text
-      ..className = 'seo-h2'
-      ..style.position = 'absolute'
-      ..style.left = '-9999px'
-      ..style.top = '-9999px'
-      ..style.width = '1px'
-      ..style.height = '1px'
-      ..style.overflow = 'hidden';
-
-    html.document.body?.append(h2);
-  }
-
   void _updateMetaTags() {
     if (!kIsWeb) return;
     
     MetaService.updateMetaTags(
       title: _seoConfig.pageTitle,
       description: _seoConfig.metaDescription,
-      slug: 'tech/${widget.category.toLowerCase()}',
+      slug: 'mock-interview/${widget.category.toLowerCase()}',
       imageUrl: _seoConfig.ogImageUrl,
       keywords: _seoConfig.keywords,
       isArticle: false,
@@ -289,22 +275,19 @@ class _TopicsScreenState extends State<TopicsScreen>
     );
     
     MetaService.setCanonical(_seoConfig.canonicalUrl);
-    
-    // Add alternate language links
     MetaService.setAlternateLanguage(_seoConfig.canonicalUrl, 'en');
-    MetaService.setAlternateLanguage('${_seoConfig.canonicalUrl}?hl=en', 'x-default');
   }
 
   void _updateSEOBasedOnData() {
     if (!kIsWeb) return;
     
     final popularTopics = allTopics
-        .take(10)
+        .take(8)
         .map((t) => t.title)
         .toList();
     
     setState(() {
-      _seoConfig = TopicSEOConfig(
+      _seoConfig = QuizTopicSEOConfig(
         category: widget.category,
         topicCount: allTopics.length,
         popularTopics: popularTopics,
@@ -313,24 +296,53 @@ class _TopicsScreenState extends State<TopicsScreen>
     
     _updateMetaTags();
     _updateCollectionPageSchema();
-    _setFaqSchema();
-    _addHowToSchema();
-    _addVideoSchemaIfApplicable();
+    _setBreadcrumbSchema();
+    _setFAQSchema();
+    _setOrganizationSchema();
+  }
+
+  void _updateFilteredMeta(String searchQuery, String difficulty, int resultCount) {
+    if (!kIsWeb) return;
+    
+    if (searchQuery.isNotEmpty) {
+      MetaService.updateMetaTags(
+        title: 'Search: $searchQuery - ${_capitalize(widget.category)} Mock Interview Tests',
+        description: 'Found $resultCount mock interview tests matching "$searchQuery" in ${widget.category}. Practice with AI feedback and detailed explanations.',
+        slug: 'mock-interview/${widget.category}',
+        isArticle: false,
+        noIndex: true,
+      );
+    } else if (difficulty != 'All') {
+      MetaService.updateMetaTags(
+        title: '$difficulty Level ${_capitalize(widget.category)} Mock Interview Tests',
+        description: 'Practice $difficulty level ${widget.category} interview questions. Perfect for ${difficulty.toLowerCase()} developers preparing for technical interviews.',
+        slug: 'mock-interview/${widget.category}',
+        isArticle: false,
+        noIndex: true,
+      );
+    } else {
+      _updateMetaTags();
+    }
+    
+    MetaService.setCanonical(_seoConfig.canonicalUrl);
   }
 
   // ==================== SCHEMA.ORG MARKUP ====================
-  void _setOrganizationSchemaOnce() {
+  void _setOrganizationSchema() {
     if (!kIsWeb) return;
-    if (TopicsScreen._organizationSchemaSet) return;
     
-    MetaService.setOrganizationSchema(
-      logoUrl: 'https://revochamp.site/logo.png',
-      description: 'RevoChamp - Free technology tutorials and comprehensive learning resources for modern developers',
-    );
-    
-    MetaService.setWebsiteSchema();
-    
-    TopicsScreen._organizationSchemaSet = true;
+    MetaService.setStructuredData({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "RevoChamp",
+      "url": "https://revochamp.site",
+      "logo": "https://revochamp.site/logo.png",
+      "description": "Free technical interview preparation and mock interview practice platform",
+      "sameAs": [
+        "https://twitter.com/revochamp",
+        "https://www.linkedin.com/company/revochamp",
+      ]
+    }, id: 'organization-schema');
   }
 
   void _updateCollectionPageSchema() {
@@ -339,17 +351,16 @@ class _TopicsScreenState extends State<TopicsScreen>
     final items = allTopics.take(20).map((topic) {
       return {
         'name': topic.title,
-        'url': 'https://revochamp.site/tech/${widget.category.toLowerCase()}/${topic.slug}',
-        'description': 'Learn ${topic.title} - ${topic.emoji} tutorial with practical examples',
-        'position': allTopics.indexOf(topic) + 1,
+        'url': 'https://revochamp.site/mock-test/${widget.category.toLowerCase()}/${topic.slug}',
+        'description': 'Practice ${topic.title} - Mock interview test with AI feedback',
       };
     }).toList();
     
     MetaService.setStructuredData({
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      "name": "${_capitalize(widget.category)} Tutorials Library",
-      "headline": "Comprehensive ${_capitalize(widget.category)} Learning Resources",
+      "name": "${_capitalize(widget.category)} Mock Interview Tests",
+      "headline": "Practice ${_capitalize(widget.category)} Technical Interviews",
       "description": _seoConfig.metaDescription,
       "url": _seoConfig.canonicalUrl,
       "inLanguage": "en",
@@ -365,182 +376,92 @@ class _TopicsScreenState extends State<TopicsScreen>
           "@type": "ListItem",
           "position": entry.key + 1,
           "item": {
-            "@type": "Article",
+            "@type": "Course",
             "name": entry.value['name'],
             "url": entry.value['url'],
             "description": entry.value['description'],
+            "provider": {
+              "@type": "Organization",
+              "name": "RevoChamp"
+            }
           }
         }).toList(),
       },
       "about": {
         "@type": "Thing",
-        "name": widget.category,
-        "description": "Technology tutorials and programming resources for ${widget.category}"
+        "name": "${widget.category} Interview Preparation",
+        "description": "Technical interview practice for ${widget.category} roles"
       },
       "educationalLevel": ["Beginner", "Intermediate", "Advanced"],
       "teaches": widget.category,
-    }, id: 'collection-page-schema');
+    }, id: 'interview-collection-schema');
   }
 
   void _setBreadcrumbSchema() {
     if (!kIsWeb) return;
     
     MetaService.setBreadcrumbData(
-      title: _capitalize(widget.category),
-      slug: 'tech/${widget.category.toLowerCase()}',
+      title: '${_capitalize(widget.category)} Mock Interview',
+      slug: 'mock-interview/${widget.category.toLowerCase()}',
       parents: [
         {'name': 'Home', 'url': 'https://revochamp.site/'},
-        {'name': 'Tech Tutorials', 'url': 'https://revochamp.site/tech'},
-        {'name': 'All Courses', 'url': 'https://revochamp.site/tech/courses'},
+        {'name': 'Mock Interview', 'url': 'https://revochamp.site/mockinterview'},
       ],
     );
   }
 
-  void _setFaqSchema() {
+  void _setFAQSchema() {
     if (!kIsWeb) return;
     
-    // final faqs = _config?.faqs?.map((faq) => {
-    //   'question': faq.question,
-    //   'answer': faq.answer,
-    // }).toList() ??
-    
-    final faqs =  _getDefaultFaqs();
-    
-    MetaService.setFAQSchemaFromMap(faqs);
+    MetaService.setFAQSchemaFromMap(_seoConfig.faqs);
   }
 
-  List<Map<String, String>> _getDefaultFaqs() {
-    final category = _capitalize(widget.category);
-    return [
-      {
-        "question": "What is $category and why should I learn it?",
-        "answer": "$category is a powerful technology used for modern application development. "
-            "Learning $category opens doors to high-demand job opportunities, enables you to build "
-            "scalable applications, and provides a strong foundation for your tech career. "
-            "Our tutorials cover everything from basics to advanced concepts."
-      },
-      {
-        "question": "How long does it take to learn $category?",
-        "answer": "The basics of $category can be learned in 2-4 weeks with consistent practice "
-            "(2-3 hours daily). Intermediate proficiency takes 2-3 months, while mastery requires "
-            "6-12 months of regular coding and project building. Our structured learning path "
-            "with ${allTopics.length} tutorials helps you progress efficiently."
-      },
-      {
-        "question": "Is $category good for beginners with no programming experience?",
-        "answer": "Yes! $category has excellent documentation, a supportive community, and many "
-            "beginner-friendly resources. We recommend starting with our beginner tutorials that "
-            "cover fundamental concepts. Take it step-by-step, practice regularly, and don't "
-            "hesitate to join community forums for help."
-      },
-      {
-        "question": "What can I build with $category?",
-        "answer": "With $category, you can build web applications, mobile apps, desktop software, "
-            "backend services, APIs, games, AI/ML applications, and more. The versatility of "
-            "$category makes it valuable across web development, mobile development, cloud computing, "
-            "and emerging technologies."
-      },
-      {
-        "question": "Are these $category tutorials really free?",
-        "answer": "Yes! All ${allTopics.length}+ tutorials on RevoChamp are completely free. "
-            "We believe in democratizing tech education. You get full access to all tutorials, "
-            "code examples, projects, and resources without any paywalls or subscriptions."
-      },
-      {
-        "question": "Do you offer certificates for completing $category tutorials?",
-        "answer": "Yes! You receive a free certificate of completion for each tutorial track "
-            "you finish. These certificates can be shared on LinkedIn and added to your "
-            "professional portfolio to showcase your $category skills to employers."
-      },
-      {
-        "question": "How are your $category tutorials structured?",
-        "answer": "Our tutorials are structured progressively from beginner to advanced levels. "
-            "Each tutorial includes: clear learning objectives, step-by-step instructions, "
-            "practical code examples, downloadable resources, hands-on exercises, and quizzes "
-            "to test your understanding."
-      },
-    ];
-  }
-
-  void _addHowToSchema() {
-    if (!kIsWeb) return;
-    
-    // Add HowTo schema for getting started guide
-    MetaService.setHowToSchema(
-      name: 'How to Start Learning ${_capitalize(widget.category)}',
-      description: 'A step-by-step guide to begin your ${widget.category} learning journey',
-      totalTime: 'PT2H',
-      steps: [
-        {
-          'name': 'Choose Your Learning Path',
-          'description': 'Select beginner-friendly tutorials from our curated list',
-          'image': 'https://revochamp.site/images/step1.png',
-        },
-        {
-          'name': 'Set Up Development Environment',
-          'description': 'Follow our setup guide to install necessary tools',
-          'image': 'https://revochamp.site/images/step2.png',
-        },
-        {
-          'name': 'Start with Fundamentals',
-          'description': 'Begin with basic concepts and simple exercises',
-          'image': 'https://revochamp.site/images/step3.png',
-        },
-      ],
-    );
-  }
-
-  void _addVideoSchemaIfApplicable() {
-    // Add video schema if category has video content
-    // if (allTopics.any((t) => t.hasVideo)) {
-    //   MetaService.setVideoSchema(
-    //     name: '${_capitalize(widget.category)} Tutorial Videos',
-    //     description: 'Video tutorials for learning ${widget.category}',
-    //     thumbnailUrl: 'https://revochamp.site/thumbnails/${widget.category}.jpg',
-    //     contentUrl: 'https://revochamp.site/videos/${widget.category}/intro.mp4',
-    //     embedUrl: 'https://www.youtube.com/embed/revochamp_${widget.category}',
-    //     duration: const Duration(minutes: 45),
-    //   );
-    // }
-  }
-
-  // ==================== ANALYTICS TRACKING ====================
+  // ==================== ANALYTICS ====================
   void _trackPageView() {
     if (kReleaseMode) {
-      // Send to analytics
       final loadTime = DateTime.now().millisecondsSinceEpoch - _pageLoadStartTime;
-      debugPrint('📊 ${widget.category} page loaded in ${loadTime}ms');
+      debugPrint('📊 QuizTopicsScreen [${widget.category}] loaded in ${loadTime}ms with ${allTopics.length} topics');
     }
   }
 
-  void _trackScrollDepth(double depth) {
-    final percentage = (depth * 100).toInt();
+  void _onScrollWithTracking() {
+    if (!_scrollController.hasClients) return;
+    
+    final position = _scrollController.position;
+    final maxExtent = position.maxScrollExtent;
+    final currentPixels = position.pixels;
+    
+    final percentage = ((currentPixels / maxExtent) * 100).toInt();
     if (percentage > _scrollDepth) {
       _scrollDepth = percentage;
       if (kReleaseMode && percentage % 25 == 0) {
         debugPrint('📊 Scroll depth: $percentage%');
       }
     }
+    
+    if (currentPixels >= maxExtent - 300) {
+      _loadMore();
+    }
   }
 
   void _trackTopicClick(TutorialTopic topic) {
     if (kReleaseMode) {
-      debugPrint('📊 Topic clicked: ${topic.title}');
+      debugPrint('📊 Mock test clicked: ${topic.title}');
     }
   }
 
   // ==================== LIFECYCLE ====================
   @override
-  void didUpdateWidget(covariant TopicsScreen oldWidget) {
+  void didUpdateWidget(covariant QuizTopicsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.category != widget.category) {
       _pageLoadStartTime = DateTime.now().millisecondsSinceEpoch;
-      _seoConfig = TopicSEOConfig(
+      _seoConfig = QuizTopicSEOConfig(
         category: widget.category,
         topicCount: 0,
         popularTopics: [],
       );
-      _setupSEOTags();
+      _setupPageSEO();
       _resetAndReload();
     }
   }
@@ -562,17 +483,18 @@ class _TopicsScreenState extends State<TopicsScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _debounce?.cancel();
     _searchController.dispose();
-    _scrollController.removeListener(_onScroll);
+    _scrollController.removeListener(_onScrollWithTracking);
     _scrollController.dispose();
     _heroController.dispose();
     super.dispose();
   }
 
   // ==================== DATA LOADING ====================
-  String getBaseUrl() => 'https://json.revochamp.site/${widget.category.toLowerCase()}/topics.json';
-  String getConfigUrl() => 'https://json.revochamp.site/${widget.category.toLowerCase()}/config.json';
+  String getBaseUrl() => 'https://json.revochamp.site/mockinterview/${widget.category}/topics.json';
+  String getConfigUrl() => 'https://json.revochamp.site/mockinterview/${widget.category}/config.json';
 
   void _setupAnimations() {
     _heroController = AnimationController(
@@ -620,10 +542,9 @@ class _TopicsScreenState extends State<TopicsScreen>
   Future<void> _initAll() async {
     final normalizedCategory = widget.category.toLowerCase();
     
-    // Check cache first
-    if (TopicsScreen._cachedTopics.containsKey(normalizedCategory)) {
+    if (QuizTopicsScreen._cachedTopics.containsKey(normalizedCategory)) {
       _applyData(
-        topics: TopicsScreen._cachedTopics[normalizedCategory]!,
+        topics: QuizTopicsScreen._cachedTopics[normalizedCategory]!,
         completed: _completedTopics,
         lastTopic: _lastTopicSlug,
       );
@@ -647,8 +568,7 @@ class _TopicsScreenState extends State<TopicsScreen>
         throw Exception('No topics found');
       }
 
-      // Cache the results
-      TopicsScreen._cachedTopics[normalizedCategory] = topics;
+      QuizTopicsScreen._cachedTopics[normalizedCategory] = topics;
 
       final completedList = _prefs!.getStringList('completed_${widget.category}') ?? [];
       final lastTopic = _prefs!.getString('last_topic_${widget.category}');
@@ -661,7 +581,7 @@ class _TopicsScreenState extends State<TopicsScreen>
     } catch (e) {
       debugPrint('Error loading topics: $e');
       if (!mounted) return;
-      _showErrorSnackbar('Failed to load topics. Please check your connection.');
+      _showErrorSnackbar('Failed to load interview tests');
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -685,36 +605,18 @@ class _TopicsScreenState extends State<TopicsScreen>
         _isLoading = false;
       });
       
-      // Update SEO based on loaded data
       _updateSEOBasedOnData();
     }
   }
 
   // ==================== PAGINATION & FILTERS ====================
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    
-    final position = _scrollController.position;
-    final maxExtent = position.maxScrollExtent;
-    final currentPixels = position.pixels;
-    
-    // Track scroll depth
-    _trackScrollDepth(currentPixels / maxExtent);
-    
-    // Load more when near bottom
-    if (currentPixels >= maxExtent - 300) {
-      _loadMore();
-    }
-  }
-
   void _loadMore() {
     if (!mounted) return;
     final totalItems = _getCurrentDisplayTopics().length;
     if (totalItems < _getTotalFilteredCount()) {
       setState(() {
-        _displayCount += _itemsPerPage;
+        _displayCount += 20;
       });
-      
       _addPaginationMeta();
     }
   }
@@ -722,25 +624,22 @@ class _TopicsScreenState extends State<TopicsScreen>
   void _addPaginationMeta() {
     if (!kIsWeb) return;
     
-    final currentPage = (_displayCount / _itemsPerPage).ceil();
-    final totalPages = (_getTotalFilteredCount() / _itemsPerPage).ceil();
+    final currentPage = (_displayCount / 20).ceil();
+    final totalPages = (_getTotalFilteredCount() / 20).ceil();
     
-    // Remove existing pagination links
     html.document.querySelectorAll('link[rel="next"], link[rel="prev"]').forEach((e) => e.remove());
-    
-    final baseUrl = _seoConfig.canonicalUrl;
     
     if (currentPage < totalPages) {
       final nextLink = html.LinkElement()
         ..rel = 'next'
-        ..href = '$baseUrl?page=${currentPage + 1}';
+        ..href = '${_seoConfig.canonicalUrl}?page=${currentPage + 1}';
       html.document.head?.append(nextLink);
     }
     
     if (currentPage > 1) {
       final prevLink = html.LinkElement()
         ..rel = 'prev'
-        ..href = currentPage == 2 ? baseUrl : '$baseUrl?page=${currentPage - 1}';
+        ..href = currentPage == 2 ? _seoConfig.canonicalUrl : '${_seoConfig.canonicalUrl}?page=${currentPage - 1}';
       html.document.head?.append(prevLink);
     }
   }
@@ -757,7 +656,7 @@ class _TopicsScreenState extends State<TopicsScreen>
   Map<String, List<TutorialTopic>> _groupTopicsSync(List<TutorialTopic> topics) {
     final map = <String, List<TutorialTopic>>{};
     for (final t in topics) {
-      final category = t.category.isNotEmpty ? t.category : 'General Topics';
+      final category = t.category.isNotEmpty ? t.category : 'Mock Interview Tests';
       map.putIfAbsent(category, () => []).add(t);
     }
     // Sort topics within each category
@@ -788,34 +687,7 @@ class _TopicsScreenState extends State<TopicsScreen>
       _displayCount = 20;
     });
     
-    _updateFilteredMeta();
-  }
-
-  void _updateFilteredMeta() {
-    if (!kIsWeb) return;
-    
-    if (_searchQuery.isNotEmpty) {
-      MetaService.updateMetaTags(
-        title: 'Search: $_searchQuery - ${_capitalize(widget.category)} Tutorials',
-        description: 'Found ${_getTotalFilteredCount()} results for "$_searchQuery" in ${widget.category}. Learn ${widget.category} with our comprehensive tutorials.',
-        slug: 'tech/${widget.category.toLowerCase()}',
-        isArticle: false,
-        noIndex: true, // Prevent search result pages from being indexed
-      );
-    } else if (_selectedDifficulty != 'All') {
-      MetaService.updateMetaTags(
-        title: '$_selectedDifficulty Level ${_capitalize(widget.category)} Tutorials',
-        description: 'Browse $_selectedDifficulty level ${widget.category} tutorials. Perfect for ${_selectedDifficulty.toLowerCase()} developers.',
-        slug: 'tech/${widget.category.toLowerCase()}/difficulty/${_selectedDifficulty.toLowerCase()}',
-        isArticle: false,
-        noIndex: true,
-      );
-    } else {
-      _updateMetaTags();
-    }
-    
-    // Always set canonical to main category page to prevent duplicate content
-    MetaService.setCanonical(_seoConfig.canonicalUrl);
+    _updateFilteredMeta(query, _selectedDifficulty, filtered.length);
   }
 
   void _onSearchChanged(String query) {
@@ -850,12 +722,12 @@ class _TopicsScreenState extends State<TopicsScreen>
   // ==================== SHARING & UTILITIES ====================
   void _shareTopicsPage() {
     final url = _seoConfig.canonicalUrl;
-    final title = '${_capitalize(widget.category)} Tutorials - RevoChamp';
+    final title = '${_capitalize(widget.category)} Mock Interview Tests - RevoChamp';
     
     if (kIsWeb) {
       html.window.navigator.share!({
         'title': title,
-        'text': 'Check out these free ${widget.category} tutorials!',
+        'text': 'Practice ${widget.category} interviews with AI feedback!',
         'url': url,
       }).catchError((_) => _copyToClipboard(url));
     } else {
@@ -934,15 +806,15 @@ class _TopicsScreenState extends State<TopicsScreen>
 
   List<Map<String, String>> _getRelatedCategories() {
     final relations = {
-      'dart': [
-        {'name': 'Flutter Basics', 'slug': 'flutter'},
-        {'name': 'OOP Concepts', 'slug': 'oop'},
-        {'name': 'Async Programming', 'slug': 'async'},
+      'frontend': [
+        {'name': 'React Interview', 'slug': 'react'},
+        {'name': 'JavaScript Interview', 'slug': 'javascript'},
+        {'name': 'CSS Interview', 'slug': 'css'},
       ],
-      'flutter': [
-        {'name': 'Widgets', 'slug': 'widgets'},
-        {'name': 'State Management', 'slug': 'state'},
-        {'name': 'Animations', 'slug': 'animations'},
+      'backend': [
+        {'name': 'System Design', 'slug': 'system-design'},
+        {'name': 'Database Interview', 'slug': 'database'},
+        {'name': 'API Design', 'slug': 'api-design'},
       ],
     };
     
@@ -1018,7 +890,7 @@ class _TopicsScreenState extends State<TopicsScreen>
           ? FloatingActionButton(
               mini: true,
               onPressed: _scrollToTop,
-              backgroundColor: PremiumTheme.richBlue,
+              backgroundColor: const Color(0xffea580c),
               child: const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white),
             )
           : null,
@@ -1039,9 +911,7 @@ class _TopicsScreenState extends State<TopicsScreen>
                 const SizedBox(height: 20),
                 _buildSkeletonBox(height: 120),
                 const SizedBox(height: 30),
-                _buildSkeletonBox(height: 30, width: 150),
-                const SizedBox(height: 20),
-                ...List.generate(4, (_) => _buildSkeletonBox(height: 80)),
+                ...List.generate(3, (_) => _buildSkeletonBox(height: 80)),
               ],
             ),
           ),
@@ -1065,7 +935,7 @@ class _TopicsScreenState extends State<TopicsScreen>
   List<Widget> _buildGroupedContent(int crossAxisCount, bool mobile, List<TutorialTopic> displayTopics) {
     final Map<String, List<TutorialTopic>> groupedDisplay = {};
     for (final topic in displayTopics) {
-      final category = topic.category.isNotEmpty ? topic.category : 'General Topics';
+      final category = topic.category.isNotEmpty ? topic.category : 'Mock Interview Tests';
       groupedDisplay.putIfAbsent(category, () => []).add(topic);
     }
 
@@ -1084,7 +954,7 @@ class _TopicsScreenState extends State<TopicsScreen>
               (context, index) {
                 final topic = topicsInCategory[index];
                 final isCompleted = _completedTopics.contains(topic.slug);
-                return TopicCard(
+                return QuizTopicCard(
                   topic: topic,
                   isCompleted: isCompleted,
                   onTap: () async {
@@ -1097,7 +967,7 @@ class _TopicsScreenState extends State<TopicsScreen>
                     }
                     await _saveLastTopic(topic.slug);
                     if (context.mounted) {
-                      context.go('/${widget.category.toLowerCase()}/${topic.slug}');
+                      context.go('/mock-test/${widget.category}/${topic.slug}');
                     }
                   },
                 );
@@ -1117,14 +987,12 @@ class _TopicsScreenState extends State<TopicsScreen>
     }).toList();
   }
 
-  // ==================== UI COMPONENTS ====================
   SliverAppBar _buildAppBar(bool isMobile) {
     return SliverAppBar(
       pinned: true,
       backgroundColor: Colors.white,
       elevation: 0,
       scrolledUnderElevation: 0,
-      surfaceTintColor: Colors.transparent,
       title: _buildLogo(),
       centerTitle: false,
       actions: [
@@ -1139,27 +1007,8 @@ class _TopicsScreenState extends State<TopicsScreen>
             child: const Text("Home", style: TextStyle(color: PremiumTheme.textMuted, fontWeight: FontWeight.w500, fontSize: 14)),
           ),
           TextButton(
-            onPressed: () => context.go('/courses'),
-            child: const Text("All Courses", style: TextStyle(color: PremiumTheme.textMuted, fontWeight: FontWeight.w500, fontSize: 14)),
-          ),
-          const SizedBox(width: 20),
-          OutlinedButton(
-            onPressed: () => _showSnackBar("Login feature coming soon"),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: PremiumTheme.lightGray, width: 1.5),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: const Text("Sign In", style: TextStyle(color: PremiumTheme.textMuted, fontWeight: FontWeight.w500, fontSize: 13)),
-          ),
-          const SizedBox(width: 10),
-          ElevatedButton(
-            onPressed: () => _showSnackBar("Sign up feature coming soon"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: PremiumTheme.richBlue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              elevation: 0,
-            ),
-            child: const Text("Get Started", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+            onPressed: () => context.go('/mockinterview'),
+            child: const Text("Mock Interview", style: TextStyle(color: PremiumTheme.textMuted, fontWeight: FontWeight.w500, fontSize: 14)),
           ),
           const SizedBox(width: 24),
         ],
@@ -1178,18 +1027,18 @@ class _TopicsScreenState extends State<TopicsScreen>
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [PremiumTheme.richBlue, Color(0xff1e40af)],
+              colors: [Color(0xffea580c), Color(0xff9a3412)],
             ),
             borderRadius: BorderRadius.circular(8),
             boxShadow: [
               BoxShadow(
-                color: PremiumTheme.richBlue.withValues(alpha: 0.2),
+                color: const Color(0xffea580c).withValues(alpha: 0.2),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: const Center(child: Text("RC", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
+          child: const Center(child: Text("MI", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14))),
         ),
         const SizedBox(width: 10),
         const Text("RevoChamp", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: PremiumTheme.textDark)),
@@ -1208,8 +1057,8 @@ class _TopicsScreenState extends State<TopicsScreen>
           ),
           const Icon(Icons.chevron_right, size: 16, color: PremiumTheme.textLight),
           InkWell(
-            onTap: () => context.go('/courses'),
-            child: Text('Courses', style: TextStyle(color: PremiumTheme.richBlue, fontSize: 13)),
+            onTap: () => context.go('/mockinterview'),
+            child: Text('Mock Interview', style: TextStyle(color: PremiumTheme.richBlue, fontSize: 13)),
           ),
           const Icon(Icons.chevron_right, size: 16, color: PremiumTheme.textLight),
           Text(
@@ -1223,7 +1072,6 @@ class _TopicsScreenState extends State<TopicsScreen>
 
   Widget _buildHeroSection(bool isMobile) {
     final hero = _config?.hero ?? HeroConfig.getDefault();
-    final topicCount = allTopics.length;
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 24 : 80, vertical: isMobile ? 40 : 50),
@@ -1232,7 +1080,7 @@ class _TopicsScreenState extends State<TopicsScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            PremiumTheme.richBlue.withValues(alpha: 0.05),
+            const Color(0xffea580c).withValues(alpha: 0.05),
             Colors.white,
             PremiumTheme.softGray.withValues(alpha: 0.5),
           ],
@@ -1244,18 +1092,18 @@ class _TopicsScreenState extends State<TopicsScreen>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             decoration: BoxDecoration(
-              color: PremiumTheme.richBlue,
+              color: const Color(0xffea580c),
               borderRadius: BorderRadius.circular(50),
               boxShadow: [
                 BoxShadow(
-                  color: PremiumTheme.richBlue.withValues(alpha: 0.3),
+                  color: const Color(0xffea580c).withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: Text(
-              topicCount > 0 ? '$topicCount+ Free Tutorials' : hero.badge,
+              '🎯 ${allTopics.length}+ Mock Tests Available',
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
             ),
           ),
@@ -1275,10 +1123,10 @@ class _TopicsScreenState extends State<TopicsScreen>
             shaderCallback: (bounds) => const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [PremiumTheme.richBlue, Color(0xff1e40af)],
+              colors: [Color(0xffea580c), Color(0xff9a3412)],
             ).createShader(bounds),
             child: Text(
-              'From Zero to Hero',
+              'Technical Interviews',
               style: TextStyle(
                 fontSize: isMobile ? 36 : 48,
                 fontWeight: FontWeight.w800,
@@ -1292,10 +1140,7 @@ class _TopicsScreenState extends State<TopicsScreen>
           Container(
             constraints: const BoxConstraints(maxWidth: 600),
             child: Text(
-              hero.description.replaceAll(
-                '{category}',
-                _capitalize(widget.category),
-              ),
+              'Practice with ${allTopics.length}+ realistic ${widget.category} interview scenarios. Get instant AI feedback, detailed explanations, and track your progress. Prepare for FAANG interviews with confidence.',
               style: TextStyle(
                 fontSize: isMobile ? 15 : 16,
                 color: PremiumTheme.textMuted,
@@ -1332,7 +1177,7 @@ class _TopicsScreenState extends State<TopicsScreen>
   Widget _buildStatsSection(bool isMobile) {
     final totalTopics = allTopics.length;
     final completedCount = _completedTopics.length;
-    final totalHours = allTopics.fold<double>(0.0, (sum, topic) => sum + (topic.estimatedHours ?? 0.0));
+    final avgTime = 30; // Average 30 minutes per test
     
     return Container(
       margin: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 80, vertical: 16),
@@ -1345,11 +1190,11 @@ class _TopicsScreenState extends State<TopicsScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem("$totalTopics", "Topics"),
+          _buildStatItem("$totalTopics", "Tests"),
           Container(width: 1, height: 30, color: PremiumTheme.lightGray),
           _buildStatItem("$completedCount", "Completed"),
           Container(width: 1, height: 30, color: PremiumTheme.lightGray),
-          _buildStatItem("${totalHours.toStringAsFixed(0)}+", "Hours"),
+          _buildStatItem("~$avgTime", "Min/Test"),
         ],
       ),
     );
@@ -1385,11 +1230,11 @@ class _TopicsScreenState extends State<TopicsScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Your Learning Progress', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: PremiumTheme.textDark)),
+              const Text('Your Practice Progress', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: PremiumTheme.textDark)),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
-                  gradient: PremiumTheme.elegantGradient,
+                  gradient: const LinearGradient(colors: [Color(0xffea580c), Color(0xff9a3412)]),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -1405,17 +1250,17 @@ class _TopicsScreenState extends State<TopicsScreen>
             child: LinearProgressIndicator(
               value: _progress,
               backgroundColor: PremiumTheme.lightGray,
-              color: PremiumTheme.richBlue,
+              color: const Color(0xffea580c),
               minHeight: 8,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             _progress > 0.8
-                ? "🎉 You're almost there! Keep pushing forward!"
+                ? "🎉 You're almost interview-ready! Keep practicing!"
                 : _progress > 0.3
-                ? "💪 Great progress! Keep learning, one topic at a time."
-                : "🌟 Start your journey today. Every expert was once a beginner.",
+                ? "💪 Great progress! Continue building your confidence."
+                : "🚀 Start practicing to ace your technical interviews!",
             style: TextStyle(fontSize: 12, color: PremiumTheme.textMuted),
           ),
         ],
@@ -1435,12 +1280,12 @@ class _TopicsScreenState extends State<TopicsScreen>
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [PremiumTheme.success.withValues(alpha: 0.12), PremiumTheme.successBg.withValues(alpha: 0.06)],
+          colors: [const Color(0xffea580c).withValues(alpha: 0.12), Colors.orange.withValues(alpha: 0.06)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: PremiumTheme.success.withValues(alpha: 0.25)),
+        border: Border.all(color: const Color(0xffea580c).withValues(alpha: 0.25)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -1449,25 +1294,25 @@ class _TopicsScreenState extends State<TopicsScreen>
           height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: const LinearGradient(colors: [Color(0xFF11998E), Color(0xFF38EF7D)]),
+            gradient: const LinearGradient(colors: [Color(0xffea580c), Color(0xff9a3412)]),
             boxShadow: [
-              BoxShadow(color: const Color(0xFF11998E).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 3)),
+              BoxShadow(color: const Color(0xffea580c).withValues(alpha: 0.3), blurRadius: 10, offset: const Offset(0, 3)),
             ],
           ),
           child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 24),
         ),
         title: Text('Continue: ${lastTopic.title}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: PremiumTheme.textDark)),
-        subtitle: const Text('Tap to resume where you left off', style: TextStyle(fontSize: 12, color: PremiumTheme.textMuted)),
+        subtitle: const Text('Resume your mock interview practice', style: TextStyle(fontSize: 12, color: PremiumTheme.textMuted)),
         trailing: Container(
           width: 36,
           height: 36,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: PremiumTheme.success.withValues(alpha: 0.12)),
-          child: const Icon(Icons.arrow_forward_rounded, size: 16, color: PremiumTheme.success),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: const Color(0xffea580c).withValues(alpha: 0.12)),
+          child: const Icon(Icons.arrow_forward_rounded, size: 16, color: Color(0xffea580c)),
         ),
         onTap: () {
           _saveLastTopic(lastTopic.slug);
           if (context.mounted) {
-            context.go('/${widget.category.toLowerCase()}/${lastTopic.slug}');
+            context.go('/mock-test/${widget.category}/${lastTopic.slug}');
           }
         },
       ),
@@ -1497,7 +1342,7 @@ class _TopicsScreenState extends State<TopicsScreen>
                 controller: _searchController,
                 onChanged: _onSearchChanged,
                 decoration: InputDecoration(
-                  hintText: "Search ${allTopics.length}+ ${widget.category} topics...",
+                  hintText: "Search ${allTopics.length}+ interview tests...",
                   hintStyle: const TextStyle(color: PremiumTheme.textLight, fontSize: 13, fontWeight: FontWeight.w500),
                   border: InputBorder.none,
                 ),
@@ -1512,7 +1357,7 @@ class _TopicsScreenState extends State<TopicsScreen>
               margin: const EdgeInsets.all(6),
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
               decoration: BoxDecoration(
-                color: PremiumTheme.richBlue,
+                color: const Color(0xffea580c),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text("Search", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12)),
@@ -1566,15 +1411,15 @@ class _TopicsScreenState extends State<TopicsScreen>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
         decoration: BoxDecoration(
-          color: isSelected ? (color ?? PremiumTheme.richBlue) : Colors.transparent,
+          color: isSelected ? (color ?? const Color(0xffea580c)) : Colors.transparent,
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: isSelected ? (color ?? PremiumTheme.richBlue) : PremiumTheme.lightGray,
+            color: isSelected ? (color ?? const Color(0xffea580c)) : PremiumTheme.lightGray,
             width: 1.5,
           ),
           boxShadow: isSelected ? [
             BoxShadow(
-              color: (color ?? PremiumTheme.richBlue).withValues(alpha: 0.25),
+              color: (color ?? const Color(0xffea580c)).withValues(alpha: 0.25),
               blurRadius: 8,
               offset: const Offset(0, 3),
             )
@@ -1606,7 +1451,7 @@ class _TopicsScreenState extends State<TopicsScreen>
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: isMobile ? 20 : 80, vertical: 8),
       child: Text(
-        'Showing $total result${total != 1 ? 's' : ''}',
+        'Showing $total test${total != 1 ? 's' : ''}',
         style: const TextStyle(fontSize: 12, color: PremiumTheme.textMuted, fontWeight: FontWeight.w500),
       ),
     );
@@ -1627,7 +1472,7 @@ class _TopicsScreenState extends State<TopicsScreen>
             width: 50,
             height: 3,
             decoration: BoxDecoration(
-              gradient: PremiumTheme.elegantGradient,
+              gradient: const LinearGradient(colors: [Color(0xffea580c), Color(0xff9a3412)]),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1649,7 +1494,7 @@ class _TopicsScreenState extends State<TopicsScreen>
               child: const Center(child: Icon(Icons.search_off_rounded, size: 40, color: PremiumTheme.textLight)),
             ),
             const SizedBox(height: 20),
-            const Text('No topics found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: PremiumTheme.textDark)),
+            const Text('No interview tests found', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: PremiumTheme.textDark)),
             const SizedBox(height: 8),
             Text(
               'Try adjusting your search or filter',
@@ -1676,7 +1521,7 @@ class _TopicsScreenState extends State<TopicsScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Explore More Topics', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          const Text('Explore More Interview Topics', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -1685,7 +1530,7 @@ class _TopicsScreenState extends State<TopicsScreen>
               return ActionChip(
                 label: Text(category['name']!),
                 onPressed: () {
-                  context.go('/tech/${category['slug']}');
+                  context.go('/mock-interview/${category['slug']}');
                 },
                 backgroundColor: Colors.white,
                 side: BorderSide(color: PremiumTheme.lightGray),

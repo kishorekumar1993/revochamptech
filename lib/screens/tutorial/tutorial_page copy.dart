@@ -1,13 +1,16 @@
+// // ==================== ENHANCED TUTORIAL PAGE - PRODUCTION READY ====================
+// // Comprehensive improvements for SEO, design, layout, and functionality
+
 // import 'dart:collection';
 // import 'dart:convert';
-// import 'dart:io';
 // import 'dart:math';
-
+// import 'dart:html' as html;
 // import 'package:flutter/foundation.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:go_router/go_router.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:firebase_analytics/firebase_analytics.dart';
 // import 'package:techtutorial/screens/tutorial/content_widget.dart';
 
 // import '../../core/meta_service.dart';
@@ -20,14 +23,133 @@
 // import 'quiz_widgets.dart';
 // import 'package:http/http.dart' as http;
 
-// class TutorialArguments {
-//   final String slug;
-//   final List<TutorialTopic> allTopics;
-//   TutorialArguments({required this.slug, required this.allTopics});
+// // ==================== ANALYTICS & TRACKING ====================
+// class TutorialAnalytics {
+//   static final _analytics = FirebaseAnalytics.instance;
+
+//   static Future<void> trackTutorialView(
+//     String category,
+//     String slug,
+//     String title,
+//   ) async {
+//     await _analytics.logEvent(
+//       name: 'tutorial_viewed',
+//       parameters: {
+//         'tutorial_id': '$category/$slug',
+//         'title': title,
+//         'category': category,
+//         'timestamp': DateTime.now().toIso8601String(),
+//       },
+//     );
+//   }
+
+//   static Future<void> trackSectionCompleted(
+//     String slug,
+//     String sectionTitle,
+//     int scrollProgress,
+//   ) async {
+//     await _analytics.logEvent(
+//       name: 'section_completed',
+//       parameters: {
+//         'tutorial_id': slug,
+//         'section': sectionTitle,
+//         'progress_percent': scrollProgress,
+//       },
+//     );
+//   }
+
+//   static Future<void> trackQuizSubmitted(
+//     String slug,
+//     int score,
+//     int total,
+//   ) async {
+//     await _analytics.logEvent(
+//       name: 'quiz_submitted',
+//       parameters: {
+//         'tutorial_id': slug,
+//         'score': score,
+//         'total': total,
+//         'percentage': (score / total * 100).toInt(),
+//       },
+//     );
+//   }
+
+//   static Future<void> trackCodeCopied(String slug, String language) async {
+//     await _analytics.logEvent(
+//       name: 'code_copied',
+//       parameters: {
+//         'tutorial_id': slug,
+//         'language': language,
+//       },
+//     );
+//   }
 // }
 
-// // ---------------------------- TutorialPage ----------------------------
+// // ==================== USER PROGRESS TRACKING ====================
+// class UserProgressManager {
+//   static Future<void> saveProgress(
+//     String slug,
+//     int scrollProgress,
+//     List<int?> quizAnswers,
+//   ) async {
+//     final prefs = await SharedPreferences.getInstance();
+    
+//     await prefs.setString(
+//       'progress_$slug',
+//       jsonEncode({
+//         'slug': slug,
+//         'scrollProgress': scrollProgress,
+//         'quizAnswers': quizAnswers,
+//         'lastAccessed': DateTime.now().toIso8601String(),
+//         'completed': scrollProgress >= 90,
+//       }),
+//     );
+//   }
 
+//   static Future<Map<String, dynamic>?> loadProgress(String slug) async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final data = prefs.getString('progress_$slug');
+//     return data != null ? jsonDecode(data) : null;
+//   }
+
+//   static Future<void> updateStudyStreak() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final lastAccess = prefs.getString('last_access');
+//     final today = DateTime.now().toString().split(' ')[0];
+    
+//     if (lastAccess == null) {
+//       await prefs.setInt('current_streak', 1);
+//     } else if (lastAccess != today) {
+//       final yesterday = DateTime.now()
+//           .subtract(const Duration(days: 1))
+//           .toString()
+//           .split(' ')[0];
+//       if (lastAccess == yesterday) {
+//         final streak = prefs.getInt('current_streak') ?? 0;
+//         await prefs.setInt('current_streak', streak + 1);
+//       } else {
+//         await prefs.setInt('current_streak', 1);
+//       }
+//     }
+    
+//     await prefs.setString('last_access', today);
+//   }
+// }
+
+// // ==================== TUTORIAL ARGUMENTS ====================
+// class TutorialArguments {
+//   final String slug;
+//   final String category;
+//   final List<TutorialTopic> allTopics;
+
+//   TutorialArguments({
+//     required this.slug,
+//     required this.category,
+//     required this.allTopics,
+//   });
+// }
+
+// // ==================== MAIN TUTORIAL PAGE ====================
 // class TutorialPage extends StatefulWidget {
 //   final TutorialArguments args;
 //   const TutorialPage({super.key, required this.args});
@@ -41,61 +163,184 @@
 //   static final LinkedHashMap<String, TutorialData> _cache = LinkedHashMap();
 //   static const int _maxCacheSize = 20;
 
+//   String get tutorialsBaseUrl =>
+//       'https://json.revochamp.site/${widget.args.category}/';
+
+//   // Core data
 //   TutorialData? _data;
 //   bool _isLoading = true;
 //   String? _error;
 
+//   // Quiz state
 //   List<QuizQuestionState> _quizStates = [];
 //   bool _quizSubmitted = false;
 //   int _score = 0;
 
+//   // Animation
 //   late AnimationController _animationController;
 //   late Animation<double> _fadeAnimation;
+
+//   // Controllers
 //   final TextEditingController _codeController = TextEditingController();
 //   final ScrollController _scrollController = ScrollController();
+//   final ScrollController _sideMenuController = ScrollController();
 
+//   // Tracking
 //   final List<GlobalKey> _headingKeys = [];
 //   double _scrollProgress = 0.0;
+//   int _currentSectionIndex = 0;
+//   bool _isFavorite = false;
 
-//   final GlobalKey _contentKey = GlobalKey();
+//   // Study stats
+//   int _studyStreak = 0;
 
 //   @override
 //   void initState() {
 //     super.initState();
+//     _initializeAnimations();
+//     _loadTutorial();
+//     _setupScrollListeners();
+//     _checkFavorite();
+//     _loadStudyStreak();
+//     _trackTutorialView();
+//     UserProgressManager.updateStudyStreak();
+//   }
+
+//   void _initializeAnimations() {
 //     _animationController = AnimationController(
 //       vsync: this,
-//       duration: const Duration(milliseconds: 500),
+//       duration: const Duration(milliseconds: 600),
 //     );
 //     _fadeAnimation = CurvedAnimation(
 //       parent: _animationController,
-//       curve: Curves.easeIn,
+//       curve: Curves.easeOutCubic,
 //     );
-//     _loadTutorial();
-
-//     _scrollController.addListener(() {
-//       if (_scrollController.hasClients) {
-//         final max = _scrollController.position.maxScrollExtent;
-//         if (max > 0) {
-//           setState(() {
-//             _scrollProgress = _scrollController.offset / max;
-//           });
-//         }
-//       }
-//     });
 //   }
 
-//   static const String tutorialsBaseUrl =
-//       'https://json.revochamp.site/flutter/'; // Added
+//   void _setupScrollListeners() {
+//     _scrollController.addListener(_updateScrollProgress);
+//     _scrollController.addListener(_updateActiveHeading);
+//   }
 
 //   @override
 //   void dispose() {
 //     _animationController.dispose();
 //     _codeController.dispose();
+//     _scrollController.removeListener(_updateScrollProgress);
+//     _scrollController.removeListener(_updateActiveHeading);
 //     _scrollController.dispose();
+//     _sideMenuController.dispose();
 //     super.dispose();
 //   }
 
-//   // Updated _loadTutorial to fetch from API
+//   // ==================== SCROLL TRACKING ====================
+//   void _updateScrollProgress() {
+//     if (!mounted || !_scrollController.hasClients) return;
+    
+//     final maxScroll = _scrollController.position.maxScrollExtent;
+//     if (maxScroll <= 0) return;
+
+//     final progress = _scrollController.offset / maxScroll;
+//     if ((_scrollProgress - progress).abs() > 0.01) {
+//       setState(() => _scrollProgress = progress);
+      
+//       // Save progress periodically
+//       if (progress % 0.1 < 0.01) {
+//         UserProgressManager.saveProgress(
+//           widget.args.slug,
+//           (progress * 100).toInt(),
+//           _quizStates.map((s) => s.selectedAnswer).toList(),
+//         );
+//       }
+//     }
+//   }
+
+//   void _updateActiveHeading() {
+//     if (!mounted || _headingKeys.isEmpty) return;
+    
+//     int activeIndex = 0;
+//     for (int i = 0; i < _headingKeys.length; i++) {
+//       final context = _headingKeys[i].currentContext;
+//       if (context != null) {
+//         final box = context.findRenderObject() as RenderBox?;
+//         if (box != null) {
+//           final position = box.localToGlobal(Offset.zero).dy;
+//           if (position > 0 && position < 250) {
+//             activeIndex = i;
+//             break;
+//           }
+//         }
+//       }
+//     }
+    
+//     if (_currentSectionIndex != activeIndex) {
+//       setState(() => _currentSectionIndex = activeIndex);
+//       TutorialAnalytics.trackSectionCompleted(
+//         widget.args.slug,
+//         _headings[activeIndex].value,
+//         (_scrollProgress * 100).toInt(),
+//       );
+      
+//       _animateSidebarScroll(activeIndex);
+//     }
+//   }
+
+//   void _animateSidebarScroll(int index) {
+//     if (!_sideMenuController.hasClients) return;
+    
+//     final double itemHeight = 48.0;
+//     final double targetOffset = (index * itemHeight) - 
+//         _sideMenuController.position.viewportDimension / 2;
+    
+//     _sideMenuController.animateTo(
+//       targetOffset.clamp(0.0, _sideMenuController.position.maxScrollExtent),
+//       duration: const Duration(milliseconds: 300),
+//       curve: Curves.easeOutCubic,
+//     );
+//   }
+
+//   // ==================== FAVORITES & PREFERENCES ====================
+//   Future<void> _checkFavorite() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final favorites = prefs.getStringList('favorites') ?? [];
+//     setState(() {
+//       _isFavorite = favorites.contains('${widget.args.category}/${widget.args.slug}');
+//     });
+//   }
+
+//   Future<void> _toggleFavorite() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     final favorites = prefs.getStringList('favorites') ?? [];
+//     final key = '${widget.args.category}/${widget.args.slug}';
+    
+//     if (_isFavorite) {
+//       favorites.remove(key);
+//       _showSnackBar('Removed from favorites');
+//     } else {
+//       favorites.add(key);
+//       _showSnackBar('Added to favorites');
+//     }
+    
+//     await prefs.setStringList('favorites', favorites);
+//     setState(() => _isFavorite = !_isFavorite);
+//   }
+
+//   Future<void> _loadStudyStreak() async {
+//     final prefs = await SharedPreferences.getInstance();
+//     setState(() {
+//       _studyStreak = prefs.getInt('current_streak') ?? 0;
+//     });
+//   }
+
+//   // ==================== TRACKING & SEO ====================
+//   void _trackTutorialView() {
+//     TutorialAnalytics.trackTutorialView(
+//       widget.args.category,
+//       widget.args.slug,
+//       _data?.title ?? '',
+//     );
+//   }
+
 //   Future<void> _loadTutorial() async {
 //     final slug = widget.args.slug;
 //     if (slug.isEmpty) {
@@ -111,7 +356,12 @@
 //         _data = _cache[slug];
 //       } else {
 //         final url = Uri.parse('$tutorialsBaseUrl$slug.json');
-//         final response = await http.get(url);
+//         debugPrint('Loading tutorial from: $url');
+//         final response = await http.get(url).timeout(
+//           const Duration(seconds: 10),
+//           onTimeout: () => http.Response('Timeout', 408),
+//         );
+
 //         if (response.statusCode == 200) {
 //           final json = jsonDecode(response.body);
 //           _data = _parseTutorialData(json);
@@ -127,14 +377,10 @@
 //           return;
 //         }
 //       }
+      
 //       _initializeFromData();
 //       setState(() => _isLoading = false);
 //       _animationController.forward();
-
-//       if (kIsWeb) {
-//         final cleanUrl = '/tech/flutter/$slug';
-//         MetaService.setCanonical('https://revochamp.site$cleanUrl');
-//       }
 //     } catch (e) {
 //       setState(() {
 //         _error = 'Failed to load tutorial: $e';
@@ -143,82 +389,80 @@
 //     }
 //   }
 
-//   // Future<void> _loadTutorial() async {
-//   //   final slug = widget.args.slug;
-//   //   if (slug.isEmpty) {
-//   //     setState(() {
-//   //       _error = 'Invalid tutorial slug.';
-//   //       _isLoading = false;
-//   //     });
-//   //     return;
-//   //   }
-
-//   //   try {
-//   //     if (_cache.containsKey(slug)) {
-//   //       _data = _cache[slug];
-//   //     } else {
-//   //       final jsonString = await rootBundle.loadString('assets/tutorials/$slug.json');
-//   //       final json = jsonDecode(jsonString);
-//   //       _data = _parseTutorialData(json);
-//   //       _cache[slug] = _data!;
-//   //       if (_cache.length > _maxCacheSize) {
-//   //         _cache.remove(_cache.keys.first);
-//   //       }
-//   //     }
-//   //     _initializeFromData();
-//   //     setState(() => _isLoading = false);
-//   //     _animationController.forward();
-
-//   //     if (kIsWeb) {
-//   //       final cleanUrl = '/flutter/$slug';
-//   //       // html.window.history.pushState(null, _data!.title, cleanUrl);
-//   //       MetaService.setCanonical('https://revochamp.site/tech$cleanUrl');
-//   //     }
-//   //   } catch (e) {
-//   //     setState(() {
-//   //       _error = 'Failed to load tutorial: $e';
-//   //       _isLoading = false;
-//   //     });
-//   //   }
-//   // }
-
 //   TutorialData _parseTutorialData(Map<String, dynamic> json) {
 //     final contentList = <ContentItem>[];
-//     for (var item in json['content'] ?? []) {
-//       final type = item['type'];
-//       final value = item['value'];
-//       if (type == 'heading') {
-//         contentList.add(
-//           ContentItem(type: ContentType.heading, value: value as String),
-//         );
-//       } else if (type == 'text') {
-//         contentList.add(
-//           ContentItem(type: ContentType.text, value: value as String),
-//         );
-//       } else if (type == 'code') {
-//         contentList.add(
-//           ContentItem(
-//             type: ContentType.code,
-//             value: value as String,
-//             language: item['language'],
-//           ),
-//         );
-//       } else if (type == 'list') {
-//         final listValue = (value as List).join('\n');
-//         contentList.add(ContentItem(type: ContentType.list, value: listValue));
+//     try {
+//       for (var item in json['content'] ?? []) {
+//         final type = item['type'];
+//         final value = item['value'];
+        
+//         switch (type) {
+//           case 'heading':
+//             contentList.add(
+//               ContentItem(type: ContentType.heading, value: value as String),
+//             );
+//           case 'subheading':
+//             contentList.add(
+//               ContentItem(type: ContentType.subheading, value: value as String),
+//             );
+//           case 'text':
+//             contentList.add(
+//               ContentItem(type: ContentType.text, value: value as String),
+//             );
+//           case 'code':
+//             contentList.add(
+//               ContentItem(
+//                 type: ContentType.code,
+//                 value: value as String,
+//                 language: item['language'],
+//               ),
+//             );
+//           case 'list':
+//             final listItems = value is List
+//                 ? value.map((e) => e.toString()).toList()
+//                 : (value as String)
+//                     .split('\n')
+//                     .where((l) => l.trim().isNotEmpty)
+//                     .toList();
+//             contentList.add(
+//               ContentItem(type: ContentType.list, value: listItems),
+//             );
+//           case 'table':
+//             contentList.add(
+//               ContentItem(
+//                 type: ContentType.table,
+//                 value: '',
+//                 tableData: item['value'] as Map<String, dynamic>?,
+//               ),
+//             );
+//           case 'callout':
+//             contentList.add(
+//               ContentItem(
+//                 type: ContentType.callout,
+//                 value: value as String,
+//                 variant: item['variant'] as String? ?? 'info',
+//               ),
+//             );
+//         }
 //       }
+//     } catch (e) {
+//       debugPrint('Error parsing content: $e');
 //     }
 
 //     final quizList = <QuizQuestion>[];
-//     for (var q in json['quiz'] ?? []) {
-//       quizList.add(
-//         QuizQuestion(
-//           question: q['question'],
-//           options: List<String>.from(q['options']),
-//           answer: q['answer'],
-//           explanation: q['explanation'],
-//         ),
-//       );
+//     try {
+//       for (var q in json['quiz'] ?? []) {
+//         quizList.add(
+//           QuizQuestion(
+//             question: q['question'],
+//             options: List<String>.from(q['options']),
+//             answer: q['answer'],
+//             explanation: q['explanation'],
+//           ),
+//         );
+//       }
+//     } catch (e) {
+//       debugPrint('Error parsing quiz: $e');
 //     }
 
 //     return TutorialData(
@@ -227,125 +471,286 @@
 //       difficulty: json['difficulty'] ?? '',
 //       readTime: json['readTime'] ?? '',
 //       meta: json['meta'],
-//       faq: List<Map<String, dynamic>>.from(json['faq'] ?? []),
+//       faq: (json['faq'] as List?)?.cast<Map<String, dynamic>>() ?? [],
 //       content: contentList,
 //       quiz: quizList,
 //       defaultCode: json['tryEditor']?['defaultCode'] ?? '',
-//       relatedSlugs: List<String>.from(json['related'] ?? []),
+//       relatedSlugs: (json['related'] as List?)?.cast<String>() ?? [],
 //     );
 //   }
 
 //   void _initializeFromData() {
 //     if (_data == null) return;
+    
 //     _quizStates = List.generate(_data!.quiz.length, (_) => QuizQuestionState());
 //     _codeController.text = _data!.defaultCode;
+    
 //     _headingKeys.clear();
 //     for (var i = 0; i < _data!.content.length; i++) {
 //       if (_data!.content[i].type == ContentType.heading) {
 //         _headingKeys.add(GlobalKey());
 //       }
 //     }
-//     _updateSeo();
-//     _updateStructuredData();
+    
+//     _updateComprehensiveSeo();
+//     _updateAdvancedStructuredData();
+
 //     if (kIsWeb) {
-//       final parents = [
-//         {
-//           'name': 'Flutter Tutorials',
-//           'url': 'https://revochamp.site/tech/flutter',
-//         },
-//       ];
-//       MetaService.setBreadcrumbData(
-//         title: _data!.title,
-//         slug: widget.args.slug,
-//         parents: parents,
-//       );
+//       _addHiddenH1(_data!.title);
+//       _injectFaqHtml();
+//       _injectInternalLinks();
+//       _injectContentHtml();
+//       _setupBreadcrumbs();
 //     }
 //   }
 
-//   void _updateSeo() {
-//     if (!kIsWeb) return;
-//     String description =
-//         'Learn ${_data!.title} with this interactive Flutter tutorial.';
-//     if (_data!.content.isNotEmpty) {
-//       final firstText = _data!.content.firstWhere(
-//         (item) => item.type == ContentType.text,
-//         orElse: () => ContentItem(type: ContentType.text, value: description),
-//       );
-//       description = firstText.value.substring(
-//         0,
-//         min(160, firstText.value.length),
-//       );
+//   // ==================== ADVANCED SEO ====================
+//   void _updateComprehensiveSeo() {
+//     final baseUrl = 'https://revochamp.site/tech';
+//     final pageUrl = '$baseUrl/${widget.args.category}/${widget.args.slug}';
+    
+//     // // Basic meta
+//     // MetaService.updateMetaTags(
+//     //   title: '${_data!.title} - Learn ${widget.args.category.toUpperCase()} | Revochamp',
+//     //   description: _generateSeoDescription(),
+//     //   slug: '${widget.args.category}/${widget.args.slug}',
+//     //   keywords: _generateKeywords(),
+//     //   isArticle: true,
+//     //   imageUrl: _data!.meta?['image'] ?? '$baseUrl/og-default.png',
+//     // );
+
+//     // // Open Graph
+//     // MetaService.setOGTags(
+//     //   title: _data!.title,
+//     //   description: _generateSeoDescription(),
+//     //   image: _data!.meta?['image'] ?? '$baseUrl/og-default.png',
+//     //   type: 'article',
+//     //   url: pageUrl,
+//     // );
+
+//     // // Twitter
+//     // MetaService.setTwitterTags(
+//     //   card: 'summary_large_image',
+//     //   title: _data!.title,
+//     //   description: _generateSeoDescription(),
+//     //   image: _data!.meta?['image'] ?? '$baseUrl/og-default.png',
+//     //   creator: '@revochamp',
+//     // );
+
+//     // // Canonical
+//     // MetaService.setCanonicalUrl(pageUrl);
+    
+//     // // Robots
+//     // MetaService.setRobotsMeta('index, follow, max-image-preview:large');
+  
+//   }
+
+//   void _updateAdvancedStructuredData() {
+//     final baseUrl = 'https://revochamp.site';
+//     final pageUrl = '$baseUrl/tech/${widget.args.category}/${widget.args.slug}';
+    
+//     final schemaGraph = [
+//       // Article
+//       {
+//         "@context": "https://schema.org",
+//         "@type": "TechArticle",
+//         "@id": pageUrl,
+//         "headline": _data!.title,
+//         "description": _generateSeoDescription(),
+//         "image": {
+//           "@type": "ImageObject",
+//           "url": _data!.meta?['image'] ?? "$baseUrl/og-default.png",
+//         },
+//         "author": {
+//           "@type": "Organization",
+//           "name": "Revochamp",
+//           "url": baseUrl,
+//         },
+//         "datePublished": _data!.meta?['datePublished'] ?? DateTime.now().toIso8601String(),
+//         "dateModified": _data!.meta?['dateModified'] ?? DateTime.now().toIso8601String(),
+//         "articleBody": _extractArticleBody(),
+//         "learningResourceType": "Tutorial",
+//       },
+
+//       // Breadcrumb
+//       {
+//         "@context": "https://schema.org",
+//         "@type": "BreadcrumbList",
+//         "itemListElement": [
+//           {
+//             "@type": "ListItem",
+//             "position": 1,
+//             "name": "Home",
+//             "item": baseUrl,
+//           },
+//           {
+//             "@type": "ListItem",
+//             "position": 2,
+//             "name": widget.args.category.toUpperCase(),
+//             "item": "$baseUrl/tech/${widget.args.category}",
+//           },
+//           {
+//             "@type": "ListItem",
+//             "position": 3,
+//             "name": _data!.title,
+//             "item": pageUrl,
+//           },
+//         ],
+//       },
+
+//       // FAQ if exists
+//       if (_data!.faq.isNotEmpty)
+//         {
+//           "@context": "https://schema.org",
+//           "@type": "FAQPage",
+//           "mainEntity": _data!.faq
+//               .map((f) => {
+//                 "@type": "Question",
+//                 "name": f['question'],
+//                 "acceptedAnswer": {
+//                   "@type": "Answer",
+//                   "text": f['answer'],
+//                 },
+//               })
+//               .toList(),
+//         },
+//     ];
+
+//     MetaService.setStructuredData({
+//       "@context": "https://schema.org",
+//       "@graph": schemaGraph,
+//     });
+//   }
+
+//   String _generateSeoDescription() {
+//     if (_data!.content.isEmpty) {
+//       return 'Master ${_data!.title} with interactive examples and quizzes.';
 //     }
-//     final metaTitle =
-//         _data!.meta?['title'] ?? '${_data!.title} - Flutter Tutorials';
-//     final metaDescription = _data!.meta?['description'] ?? description;
-//     MetaService.updateMetaTags(
-//       title: metaTitle,
-//       description: metaDescription,
-//       slug: widget.args.slug,
+    
+//     final firstText = _data!.content
+//         .firstWhere((item) => item.type == ContentType.text,
+//             orElse: () => ContentItem(type: ContentType.text, value: ''))
+//         .value
+//         .replaceAll(RegExp(r'[*_#\[\]()]'), '');
+    
+//     return firstText.substring(0, min(155, firstText.length)) + '...';
+//   }
+
+//   List<String> _generateKeywords() {
+//     return [
+//       _data!.title.toLowerCase(),
+//       widget.args.category,
+//       'tutorial',
+//       'learn',
+//       'interactive',
+//       ..._extractKeywordsFromContent(),
+//     ];
+//   }
+
+//   List<dynamic> _extractKeywordsFromContent() {
+//     return _data!.content
+//         .where((item) => item.type == ContentType.heading)
+//         .map((item) => item.value.toLowerCase())
+//         .take(5)
+//         .toList();
+//   }
+
+//   String _extractArticleBody() {
+//     return _data!.content
+//         .where((item) => item.type == ContentType.text)
+//         .map((item) => item.value)
+//         .join('\n\n')
+//         .substring(0, min(5000, _data!.content.length));
+//   }
+
+//   void _addHiddenH1(String text) {
+//     final existing = html.document.querySelector('h1.seo-hidden');
+//     existing?.remove();
+
+//     final h1 = html.HeadingElement.h1()
+//       ..text = text
+//       ..className = 'seo-hidden'
+//       ..style.position = 'absolute'
+//       ..style.left = '-9999px'
+//       ..style.top = '-9999px'
+//       ..style.width = '1px'
+//       ..style.height = '1px'
+//       ..style.overflow = 'hidden';
+
+//     html.document.body?.append(h1);
+//   }
+
+//   void _injectInternalLinks() {
+//     if (!kIsWeb || _data == null) return;
+
+//     final div = html.DivElement()
+//       ..style.position = 'absolute'
+//       ..style.left = '-9999px';
+
+//     for (var slug in _data!.relatedSlugs) {
+//       final a = html.AnchorElement()
+//         ..href = '/${widget.args.category}/$slug'
+//         ..text = slug;
+//       div.append(a);
+//     }
+
+//     html.document.body?.append(div);
+//   }
+
+//   void _injectContentHtml() {
+//     if (!kIsWeb || _data == null) return;
+
+//     final div = html.DivElement()
+//       ..style.position = 'absolute'
+//       ..style.left = '-9999px';
+
+//     for (var item in _data!.content) {
+//       if (item.type == ContentType.text || item.type == ContentType.heading) {
+//         div.append(html.ParagraphElement()..text = item.value);
+//       }
+//     }
+
+//     html.document.body?.append(div);
+//   }
+
+//   void _injectFaqHtml() {
+//     if (!kIsWeb || _data == null || _data!.faq.isEmpty) return;
+
+//     final container = html.DivElement()
+//       ..style.position = 'absolute'
+//       ..style.left = '-9999px';
+
+//     for (var f in _data!.faq) {
+//       final q = html.HeadingElement.h2()..text = f['question'];
+//       final a = html.ParagraphElement()..text = f['answer'];
+//       container.append(q);
+//       container.append(a);
+//     }
+
+//     html.document.body?.append(container);
+//   }
+
+//   void _setupBreadcrumbs() {
+//     if (!kIsWeb) return;
+    
+//     final parents = [
+//       {
+//         'name': '${widget.args.category.toUpperCase()} Tutorials',
+//         'url': 'https://revochamp.site/tech/${widget.args.category}',
+//       },
+//     ];
+    
+//     MetaService.setBreadcrumbData(
+//       title: _data!.title,
+//       slug: '${widget.args.category}/${widget.args.slug}',
+//       parents: parents,
 //     );
 //   }
 
-//   void _updateStructuredData() {
-//     final baseUrl = 'https://revochamp.site/tech';
-//     final pageId = '$baseUrl/flutter/${widget.args.slug}';
-//     final structuredData = {
-//       "@context": "https://schema.org",
-//       "@type": "TechArticle",
-//       "headline": _data!.title,
-//       "description": _getDescription(),
-//       "author": {"@type": "Person", "name": "Flutter Tutorials Team"},
-//       "datePublished": "2025-01-01",
-//       "image": "$baseUrl/icon.png",
-//       "publisher": {
-//         "@type": "Organization",
-//         "name": "Your Organization",
-//         "logo": {"@type": "ImageObject", "url": "$baseUrl/logo.png"},
-//       },
-//       "mainEntityOfPage": {"@type": "WebPage", "@id": pageId},
-//     };
-
-//     if (_data!.faq.isNotEmpty) {
-//       final graph = [
-//         structuredData,
-//         {
-//           "@type": "FAQPage",
-//           "mainEntity": _data!.faq
-//               .map(
-//                 (f) => {
-//                   "@type": "Question",
-//                   "name": f['question'],
-//                   "acceptedAnswer": {"@type": "Answer", "text": f['answer']},
-//                 },
-//               )
-//               .toList(),
-//         },
-//       ];
-//       MetaService.setStructuredData({
-//         "@context": "https://schema.org",
-//         "@graph": graph,
-//       });
-//     } else {
-//       MetaService.setStructuredData(structuredData);
-//     }
-//   }
-
-//   String _getDescription() {
-//     if (_data!.content.isNotEmpty) {
-//       final textItem = _data!.content.firstWhere(
-//         (item) => item.type == ContentType.text,
-//         orElse: () => ContentItem(type: ContentType.text, value: ''),
-//       );
-//       return textItem.value.substring(0, min(160, textItem.value.length));
-//     }
-//     return 'Interactive Flutter tutorial about ${_data!.title}.';
-//   }
-
+//   // ==================== QUIZ FUNCTIONALITY ====================
 //   void _submitQuiz() {
 //     if (_quizStates.any((state) => state.selectedAnswer == null)) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('Please answer all questions')),
-//       );
+//       _showSnackBar('Please answer all questions');
 //       return;
 //     }
 
@@ -361,16 +766,18 @@
 //       _score = score;
 //       _quizSubmitted = true;
 //     });
-
+    
+//     TutorialAnalytics.trackQuizSubmitted(widget.args.slug, score, _data!.quiz.length);
 //     _markCompleted();
 //   }
 
 //   Future<void> _markCompleted() async {
 //     final prefs = await SharedPreferences.getInstance();
-//     final completed = prefs.getStringList('completed') ?? [];
+//     final key = 'completed_${widget.args.category}';
+//     final completed = prefs.getStringList(key) ?? [];
 //     if (!completed.contains(widget.args.slug)) {
 //       completed.add(widget.args.slug);
-//       await prefs.setStringList('completed', completed);
+//       await prefs.setStringList(key, completed);
 //     }
 //   }
 
@@ -385,828 +792,607 @@
 //     });
 //   }
 
+//   // ==================== CODE & COPY ====================
 //   void _copyCode(String code) {
 //     Clipboard.setData(ClipboardData(text: code));
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       const SnackBar(
-//         content: Text('Code copied to clipboard'),
-//         duration: Duration(seconds: 1),
-//       ),
-//     );
+//     _showSnackBar('Copied to clipboard');
+//     TutorialAnalytics.trackCodeCopied(widget.args.slug, 'unknown');
 //   }
 
+//   // ==================== NAVIGATION ====================
 //   void _goToPrevious() {
 //     final topics = widget.args.allTopics;
 //     if (topics.isEmpty) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('Loading topics... please wait')),
-//       );
+//       _showSnackBar('Loading topics... please wait');
 //       return;
 //     }
 //     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
+
 //     if (currentIndex > 0) {
-//       final prevSlug = topics[currentIndex - 1].slug;
-//       // ✅ Use /flutter/$prevSlug
-//       // Navigator.pushReplacementNamed(context, '/flutter/$prevSlug');
-// context.go('/tech/flutter/$prevSlug');
+//       context.go('/${widget.args.category}/${topics[currentIndex - 1].slug}');
 //     } else {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('This is the first tutorial')),
-//       );
+//       _showSnackBar('This is the first tutorial');
 //     }
 //   }
 
-//   int _currentSectionIndex = 0;
 //   void _goToNext() {
 //     final topics = widget.args.allTopics;
 //     if (topics.isEmpty) {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('Loading topics... please wait')),
-//       );
+//       _showSnackBar('Loading topics... please wait');
 //       return;
 //     }
 //     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
+
 //     if (currentIndex < topics.length - 1) {
-//       final nextSlug = topics[currentIndex + 1].slug;
-//       // ✅ Use /flutter/$nextSlug
-//       // Navigator.pushReplacementNamed(context, '/flutter/$nextSlug');
-// context.go('/tech/flutter/$nextSlug');
-//       } else {
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text('You have completed all tutorials!')),
-//       );
+//       context.go('/${widget.args.category}/${topics[currentIndex + 1].slug}');
+//     } else {
+//       _showSnackBar('🎉 Congratulations! You completed all tutorials!');
 //     }
 //   }
 
-//   List<ContentItem> get _headings =>
-//       _data?.content
-//           .where((item) => item.type == ContentType.heading)
-//           .toList() ??
-//       [];
+//   void _shareTutorial() {
+//     final url =
+//         'https://revochamp.site/tech/${widget.args.category}/${widget.args.slug}';
+//     final title = _data!.title;
 
-//   void _scrollToHeading(int index) {
-//     if (index < _headingKeys.length &&
-//         _headingKeys[index].currentContext != null) {
-//       Scrollable.ensureVisible(
-//         _headingKeys[index].currentContext!,
-//         duration: const Duration(milliseconds: 300),
-//         curve: Curves.easeInOut,
-//       );
+//     if (kIsWeb && html.window.navigator.share != null) {
+//       html.window.navigator.share!({'title': title, 'url': url})
+//           .catchError((_) => _fallbackShare(url));
+//     } else {
+//       _fallbackShare(url);
 //     }
 //   }
 
-//   // ---------- UI Building ----------
-//   @override
-//   Widget build(BuildContext context) {
-//     if (_isLoading) {
-//       return Scaffold(body: Center(child: CircularProgressIndicator()));
-//     }
+//   void _fallbackShare(String url) {
+//     Clipboard.setData(ClipboardData(text: url));
+//     _showSnackBar('Link copied to clipboard!');
+//   }
 
-//     if (_error != null) {
-//       return Scaffold(
-//         body: Center(
-//           child: Column(
-//             mainAxisAlignment: MainAxisAlignment.center,
-//             children: [
-//               const Icon(Icons.error_outline, size: 64, color: Colors.red),
-//               const SizedBox(height: 16),
-//               Text(_error!, style: const TextStyle(color: Colors.red)),
-//               const SizedBox(height: 16),
-//               ElevatedButton(
-//                 onPressed: () {
-//                   setState(() => _isLoading = true);
-//                   _loadTutorial();
-//                 },
-//                 child: const Text('Retry'),
-//               ),
-//             ],
-//           ),
-//         ),
-//       );
-//     }
-
-//     final theme = Theme.of(context);
-//     final isDesktop = MediaQuery.of(context).size.width > 1000;
-
-//     return Scaffold(
-//       // appBar: AppBar(
-//       //   title: Semantics(
-//       //     header: true,
-//       //     child: Text(_data!.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600)),
-//       //   ),
-//       //   flexibleSpace: Container(decoration: BoxDecoration(gradient: primaryGradient)),
-//       //   bottom: PreferredSize(
-//       //     preferredSize: const Size.fromHeight(4),
-//       //     child: LinearProgressIndicator(
-//       //       value: _scrollProgress,
-//       //       backgroundColor: Colors.transparent,
-//       //       color: Colors.white,
-//       //       minHeight: 3,
-//       //     ),
-//       //   ),
-//       // ),
-//       appBar: PreferredSize(
-//         preferredSize: const Size.fromHeight(70),
-//         child: Container(
-//           decoration: BoxDecoration(
-//             gradient: primaryGradient,
-//             boxShadow: [
-//               BoxShadow(
-//                 color: Colors.black.withOpacity(0.15),
-//                 blurRadius: 12,
-//                 offset: const Offset(0, 4),
-//               ),
-//             ],
-//           ),
-//           child: SafeArea(
-//             child: Column(
-//               children: [
-//                 // 🔹 TOP BAR
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 16),
-//                   child: SizedBox(
-//                     height: 56,
-//                     child: Row(
-//                       children: [
-//                         // Back
-//                         IconButton(
-//                           icon: const Icon(
-//                             Icons.arrow_back,
-//                             color: Colors.white,
-//                           ),
-//                           onPressed: () => Navigator.pop(context),
-//                         ),
-
-//                         // Title (ellipsis safe)
-//                         Expanded(
-//                           child: Text(
-//                             _data!.title,
-//                             maxLines: 1,
-//                             overflow: TextOverflow.ellipsis,
-//                             style: const TextStyle(
-//                               fontSize: 18,
-//                               fontWeight: FontWeight.w600,
-//                               color: Colors.white,
-//                             ),
-//                           ),
-//                         ),
-
-//                         // Actions
-//                         IconButton(
-//                           icon: const Icon(Icons.share, color: Colors.white70),
-//                           onPressed: () {
-//                             // TODO: Share logic
-//                           },
-//                         ),
-
-//                         IconButton(
-//                           icon: const Icon(Icons.copy, color: Colors.white70),
-//                           onPressed: () {
-//                             Clipboard.setData(
-//                               ClipboardData(text: _data!.title),
-//                             );
-//                             ScaffoldMessenger.of(context).showSnackBar(
-//                               const SnackBar(content: Text('Title copied')),
-//                             );
-//                           },
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-
-//                 // 🔹 PROGRESS BAR (SMOOTH + ROUNDED)
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(horizontal: 16),
-//                   child: ClipRRect(
-//                     borderRadius: BorderRadius.circular(10),
-//                     child: LinearProgressIndicator(
-//                       value: _scrollProgress,
-//                       minHeight: 4,
-//                       backgroundColor: Colors.white.withOpacity(0.2),
-//                       valueColor: const AlwaysStoppedAnimation<Color>(
-//                         Colors.white,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-
-//                 const SizedBox(height: 6),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ),
-//       floatingActionButton: Column(
-//         mainAxisAlignment: MainAxisAlignment.end,
-//         children: [
-//           FloatingActionButton(
-//             heroTag: "prev",
-//             onPressed: _goToPrevious,
-//             mini: true,
-//             child: const Icon(Icons.arrow_back),
-//           ),
-//           const SizedBox(height: 10),
-//           FloatingActionButton(
-//             heroTag: "next",
-//             onPressed: _goToNext,
-//             mini: true,
-//             child: const Icon(Icons.arrow_forward),
-//           ),
-//         ],
-//       ),
-//       body: Container(
-//         decoration: BoxDecoration(
-//           gradient: LinearGradient(
-//             begin: Alignment.topCenter,
-//             end: Alignment.bottomCenter,
-//             colors: [
-//               theme.brightness == Brightness.dark
-//                   ? Colors.grey[900]!
-//                   : const Color(0xFFF8FAFC),
-//               theme.brightness == Brightness.dark
-//                   ? Colors.grey[850]!
-//                   : const Color(0xFFEFF3F8),
-//             ],
-//           ),
-//         ),
-//         child: isDesktop
-//             ? Row(
-//                 crossAxisAlignment: CrossAxisAlignment.start,
-//                 children: [
-//                   // Sidebar TOC
-//                   SizedBox(
-//                     width: 280,
-//                     child: Container(
-//                       margin: const EdgeInsets.all(12),
-//                       decoration: BoxDecoration(
-//                         color: Colors.white.withOpacity(0.85),
-//                         borderRadius: BorderRadius.circular(20),
-//                         boxShadow: [
-//                           BoxShadow(
-//                             color: Colors.black.withOpacity(0.05),
-//                             blurRadius: 12,
-//                           ),
-//                         ],
-//                       ),
-//                       child: Column(
-//                         children: [
-//                           // 🔹 HEADER
-//                           const Padding(
-//                             padding: EdgeInsets.all(16),
-//                             child: Row(
-//                               children: [
-//                                 Icon(Icons.menu_book, color: Color(0xFF1E3C72)),
-//                                 SizedBox(width: 8),
-//                                 Text(
-//                                   "Contents",
-//                                   style: TextStyle(
-//                                     fontSize: 18,
-//                                     fontWeight: FontWeight.w600,
-//                                     color: Color(0xFF1E3C72),
-//                                   ),
-//                                 ),
-//                               ],
-//                             ),
-//                           ),
-
-//                           Divider(height: 1),
-
-//                           // 🔹 LIST
-//                           Expanded(
-//                             child: ListView.builder(
-//                               controller: ScrollController(),
-//                               padding: const EdgeInsets.all(8),
-//                               itemCount: _headings.length,
-//                               itemBuilder: (context, index) {
-//                                 final item = _headings[index];
-//                                 final isActive = index == _currentSectionIndex;
-
-//                                 return MouseRegion(
-//                                   cursor: SystemMouseCursors.click,
-//                                   child: InkWell(
-//                                     borderRadius: BorderRadius.circular(12),
-//                                     onTap: () {
-//                                       _scrollToHeading(index);
-//                                       setState(
-//                                         () => _currentSectionIndex = index,
-//                                       );
-//                                     },
-//                                     child: AnimatedContainer(
-//                                       duration: const Duration(
-//                                         milliseconds: 200,
-//                                       ),
-//                                       margin: const EdgeInsets.symmetric(
-//                                         vertical: 4,
-//                                       ),
-//                                       padding: const EdgeInsets.symmetric(
-//                                         horizontal: 12,
-//                                         vertical: 10,
-//                                       ),
-//                                       decoration: BoxDecoration(
-//                                         borderRadius: BorderRadius.circular(12),
-//                                         color: isActive
-//                                             ? const Color(
-//                                                 0xFF2A5298,
-//                                               ).withOpacity(0.12)
-//                                             : Colors.transparent,
-//                                       ),
-//                                       child: Row(
-//                                         children: [
-//                                           // 🔹 ACTIVE BAR
-//                                           AnimatedContainer(
-//                                             duration: const Duration(
-//                                               milliseconds: 200,
-//                                             ),
-//                                             width: 3,
-//                                             height: 20,
-//                                             margin: const EdgeInsets.only(
-//                                               right: 10,
-//                                             ),
-//                                             decoration: BoxDecoration(
-//                                               color: isActive
-//                                                   ? const Color(0xFF2A5298)
-//                                                   : Colors.transparent,
-//                                               borderRadius:
-//                                                   BorderRadius.circular(10),
-//                                             ),
-//                                           ),
-
-//                                           // 🔹 TEXT
-//                                           Expanded(
-//                                             child: Text(
-//                                               item.value,
-//                                               maxLines: 2,
-//                                               overflow: TextOverflow.ellipsis,
-//                                               style: TextStyle(
-//                                                 fontSize: 14,
-//                                                 fontWeight: isActive
-//                                                     ? FontWeight.w600
-//                                                     : FontWeight.w400,
-//                                                 color: isActive
-//                                                     ? const Color(0xFF1E3C72)
-//                                                     : Colors.black87,
-//                                               ),
-//                                             ),
-//                                           ),
-//                                         ],
-//                                       ),
-//                                     ),
-//                                   ),
-//                                 );
-//                               },
-//                             ),
-//                           ),
-
-//                           // 🔹 PROGRESS FOOTER
-//                           Container(
-//                             padding: const EdgeInsets.all(12),
-//                             child: LinearProgressIndicator(
-//                               value: _scrollProgress,
-//                               minHeight: 4,
-//                               backgroundColor: Colors.grey.shade300,
-//                               valueColor: const AlwaysStoppedAnimation(
-//                                 Color(0xFF2A5298),
-//                               ),
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                     ),
-//                   ),
-//                   Expanded(
-//                     child: Center(
-//                       child: ConstrainedBox(
-//                         constraints: const BoxConstraints(maxWidth: 1200),
-//                         child: FadeTransition(
-//                           opacity: _fadeAnimation,
-//                           child: KeyedSubtree(
-//                             key: _contentKey,
-//                             child: Scrollbar(
-//                               controller: _scrollController,
-//                               child: ListView(
-//                                 controller: _scrollController,
-//                                 padding: const EdgeInsets.all(20),
-//                                 children: [
-                                
-//                                   // Inline TOC is hidden on desktop; we use sidebar instead
-//                                   if (!isDesktop && _headings.isNotEmpty) ...[
-//                                     Text(
-//                                       '📑 Contents',
-//                                       style: TextStyle(
-//                                         fontSize: 20,
-//                                         fontWeight: FontWeight.bold,
-//                                         color: const Color(0xFF1E3C72),
-//                                       ),
-//                                     ),
-//                                     const SizedBox(height: 8),
-//                                     Wrap(
-//                                       spacing: 8,
-//                                       runSpacing: 4,
-//                                       children: _headings.asMap().entries.map((
-//                                         entry,
-//                                       ) {
-//                                         final idx = entry.key;
-//                                         final heading = entry.value;
-//                                         final bool hasValidKey =
-//                                             idx < _headingKeys.length;
-//                                         return ActionChip(
-//                                           label: Text(heading.value),
-//                                           onPressed: hasValidKey
-//                                               ? () => _scrollToHeading(idx)
-//                                               : null,
-//                                           backgroundColor: const Color(
-//                                             0xFF2A5298,
-//                                           ).withOpacity(0.1),
-//                                         );
-//                                       }).toList(),
-//                                     ),
-//                                     const SizedBox(height: 20),
-//                                   ],
-
-//                                   ..._buildContentWidgets(theme),
-
-//                                   const SizedBox(height: 20),
-//                                   Text(
-//                                     '✏️ Try it Yourself',
-//                                     style: TextStyle(
-//                                       fontSize: 28,
-//                                       fontWeight: FontWeight.bold,
-//                                       color: const Color(0xFF1E3C72),
-//                                     ),
-//                                   ),
-//                                   const SizedBox(height: 16),
-//                                   EditorWidget(
-//                                     codeController: _codeController,
-//                                     defaultCode: _data!.defaultCode,
-//                                     onCopy: _copyCode,
-//                                     onRun: () {
-//                                       ScaffoldMessenger.of(
-//                                         context,
-//                                       ).showSnackBar(
-//                                         SnackBar(
-//                                           content: Text(
-//                                             'Running code:\n${_codeController.text}',
-//                                           ),
-//                                         ),
-//                                       );
-//                                     },
-//                                     onReset: () => setState(
-//                                       () => _codeController.text =
-//                                           _data!.defaultCode,
-//                                     ),
-//                                   ),
-
-//                                   const SizedBox(height: 40),
-
-//                                   if (_data!.quiz.isNotEmpty) ...[
-//                                     Text(
-//                                       '📝 Test Your Knowledge',
-//                                       style: TextStyle(
-//                                         fontSize: 28,
-//                                         fontWeight: FontWeight.bold,
-//                                         color: const Color(0xFF1E3C72),
-//                                       ),
-//                                     ),
-//                                     const SizedBox(height: 16),
-//                                     if (!_quizSubmitted)
-//                                       Padding(
-//                                         padding: const EdgeInsets.only(
-//                                           bottom: 8,
-//                                         ),
-//                                         child: Text(
-//                                           'Answer all ${_data!.quiz.length} questions',
-//                                           style: theme.textTheme.bodyLarge
-//                                               ?.copyWith(
-//                                                 color: Colors.grey[600],
-//                                               ),
-//                                         ),
-//                                       ),
-//                                     for (int i = 0; i < _data!.quiz.length; i++)
-//                                       QuizCard(
-//                                         index: i,
-//                                         total: _data!.quiz.length,
-//                                         question: _data!.quiz[i],
-//                                         state: _quizStates[i],
-//                                         submitted: _quizSubmitted,
-//                                         onAnswerSelected: (answerIndex) {
-//                                           if (!_quizSubmitted) {
-//                                             setState(
-//                                               () =>
-//                                                   _quizStates[i]
-//                                                           .selectedAnswer =
-//                                                       answerIndex,
-//                                             );
-//                                           }
-//                                         },
-//                                       ),
-//                                     if (_quizSubmitted)
-//                                       ScoreCard(
-//                                         score: _score,
-//                                         total: _data!.quiz.length,
-//                                       ),
-//                                     const SizedBox(height: 16),
-//                                     QuizButtons(
-//                                       onSubmit: _submitQuiz,
-//                                       onReset: _resetQuiz,
-//                                     ),
-
-//                                     const SizedBox(height: 30),
-//                                     // _buildAdPlaceholder(),
-//                                     buildAdPlaceholder(
-//   height: 120,
-//   label: "Sponsored",
-// ),
-//                                   ],
-
-//                                   if (_data!.faq.isNotEmpty) _buildFaqSection(),
-
-//                                   if (_data!.relatedSlugs.isNotEmpty) ...[
-//                                     const Divider(height: 40, thickness: 2),
-//                                      // ✅ CALL HERE
-//           RelatedSlugsWrap(
-//             slugs: _data?.relatedSlugs ?? [],
-//           ),
-//                                     // Text(
-//                                     //   '🔗 Related Topics',
-//                                     //   style: TextStyle(
-//                                     //     fontSize: 24,
-//                                     //     fontWeight: FontWeight.bold,
-//                                     //     color: const Color(0xFF1E3C72),
-//                                     //   ),
-//                                     // ),
-//                                     // const SizedBox(height: 16),
-//                                     // Wrap(
-//                                     //   spacing: 8,
-//                                     //   runSpacing: 8,
-//                                     //   children: _data!.relatedSlugs.map((slug) {
-//                                     //     return ActionChip(
-//                                     //       label: Text(
-//                                     //         slug
-//                                     //             .replaceFirst('flutter-', '')
-//                                     //             .replaceFirst('-', ' '),
-//                                     //       ),
-//                                     //       onPressed: () {
-//                                     //         // ✅ Use /flutter/$slug
-//                                     //         Navigator.pushReplacementNamed(
-//                                     //           context,
-//                                     //           '/flutter/$slug',
-//                                     //         );
-//                                     //       },
-//                                     //       backgroundColor: const Color(
-//                                     //         0xFF2A5298,
-//                                     //       ).withOpacity(0.1),
-//                                     //       side: const BorderSide(
-//                                     //         color: Color(0xFF2A5298),
-//                                     //       ),
-//                                     //     );
-//                                     //   }).toList(),
-//                                     // ),
-                          
-                          
-//                                   ],
-
-//                                   const SizedBox(height: 30),
-//                                   // _buildAdPlaceholder(),
-//                                   buildAdPlaceholder(
-//   height: 120,
-//   label: "Sponsored",
-// ),
-
-//                                   NavigationButtons(
-//                                     onPrevious: _goToPrevious,
-//                                     onNext: _goToNext,
-//                                   ),
-//                                   const SizedBox(height: 20),
-//                                 ],
-//                               ),
-//                             ),
-//                           ),
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ],
-//               )
-//             : // Mobile layout (no sidebar)
-//               Center(
-//                 child: ConstrainedBox(
-//                   constraints: const BoxConstraints(maxWidth: 900),
-//                   child: FadeTransition(
-//                     opacity: _fadeAnimation,
-//                     child: KeyedSubtree(
-//                       key: _contentKey,
-//                       child: Scrollbar(
-//                         controller: _scrollController,
-//                         child: ListView(
-//                           controller: _scrollController,
-//                           padding: const EdgeInsets.all(20),
-//                           children: [
-//                             // _buildTutorialHero(),
-//                             // const SizedBox(height: 20),
-//                             if (_headings.isNotEmpty) ...[
-//                               Text(
-//                                 '📑 Contents',
-//                                 style: TextStyle(
-//                                   fontSize: 20,
-//                                   fontWeight: FontWeight.bold,
-//                                   color: const Color(0xFF1E3C72),
-//                                 ),
-//                               ),
-//                               const SizedBox(height: 8),
-//                               Wrap(
-//                                 spacing: 8,
-//                                 runSpacing: 4,
-//                                 children: _headings.asMap().entries.map((
-//                                   entry,
-//                                 ) {
-//                                   final idx = entry.key;
-//                                   final heading = entry.value;
-//                                   final bool hasValidKey =
-//                                       idx < _headingKeys.length;
-//                                   return ActionChip(
-//                                     label: Text(heading.value),
-//                                     onPressed: hasValidKey
-//                                         ? () => _scrollToHeading(idx)
-//                                         : null,
-//                                     backgroundColor: const Color(
-//                                       0xFF2A5298,
-//                                     ).withOpacity(0.1),
-//                                   );
-//                                 }).toList(),
-//                               ),
-//                               const SizedBox(height: 20),
-//                             ],
-
-//                             ..._buildContentWidgets(theme),
-
-//                             const SizedBox(height: 20),
-//                             Text(
-//                               '✏️ Try it Yourself',
-//                               style: TextStyle(
-//                                 fontSize: 28,
-//                                 fontWeight: FontWeight.bold,
-//                                 color: const Color(0xFF1E3C72),
-//                               ),
-//                             ),
-//                             const SizedBox(height: 16),
-//                             EditorWidget(
-//                               codeController: _codeController,
-//                               defaultCode: _data!.defaultCode,
-//                               onCopy: _copyCode,
-//                               onRun: () {
-//                                 ScaffoldMessenger.of(context).showSnackBar(
-//                                   SnackBar(
-//                                     content: Text(
-//                                       'Running code:\n${_codeController.text}',
-//                                     ),
-//                                   ),
-//                                 );
-//                               },
-//                               onReset: () => setState(
-//                                 () => _codeController.text = _data!.defaultCode,
-//                               ),
-//                             ),
-
-//                             const SizedBox(height: 40),
-
-//                             if (_data!.quiz.isNotEmpty) ...[
-//                               Text(
-//                                 '📝 Test Your Knowledge',
-//                                 style: TextStyle(
-//                                   fontSize: 28,
-//                                   fontWeight: FontWeight.bold,
-//                                   color: const Color(0xFF1E3C72),
-//                                 ),
-//                               ),
-//                               const SizedBox(height: 16),
-//                               if (!_quizSubmitted)
-//                                 Padding(
-//                                   padding: const EdgeInsets.only(bottom: 8),
-//                                   child: Text(
-//                                     'Answer all ${_data!.quiz.length} questions',
-//                                     style: theme.textTheme.bodyLarge?.copyWith(
-//                                       color: Colors.grey[600],
-//                                     ),
-//                                   ),
-//                                 ),
-//                               for (int i = 0; i < _data!.quiz.length; i++)
-//                                 QuizCard(
-//                                   index: i,
-//                                   total: _data!.quiz.length,
-//                                   question: _data!.quiz[i],
-//                                   state: _quizStates[i],
-//                                   submitted: _quizSubmitted,
-//                                   onAnswerSelected: (answerIndex) {
-//                                     if (!_quizSubmitted) {
-//                                       setState(
-//                                         () => _quizStates[i].selectedAnswer =
-//                                             answerIndex,
-//                                       );
-//                                     }
-//                                   },
-//                                 ),
-//                               if (_quizSubmitted)
-//                                 ScoreCard(
-//                                   score: _score,
-//                                   total: _data!.quiz.length,
-//                                 ),
-//                               const SizedBox(height: 16),
-//                               QuizButtons(
-//                                 onSubmit: _submitQuiz,
-//                                 onReset: _resetQuiz,
-//                               ),
-
-//                               const SizedBox(height: 30),
-//                               // _buildAdPlaceholder(),
-//                               buildAdPlaceholder(
-//   height: 120,
-//   label: "Sponsored",
-// ),
-//                             ],
-
-//                             if (_data!.faq.isNotEmpty) _buildFaqSection(),
-
-//                             if (_data!.relatedSlugs.isNotEmpty) ...[
-//                               const Divider(height: 40, thickness: 2),
-//                               Text(
-//                                 '🔗 Related Topics',
-//                                 style: TextStyle(
-//                                   fontSize: 24,
-//                                   fontWeight: FontWeight.bold,
-//                                   color: const Color(0xFF1E3C72),
-//                                 ),
-//                               ),
-//                               const SizedBox(height: 16),
-//                               Wrap(
-//                                 spacing: 8,
-//                                 runSpacing: 8,
-//                                 children: _data!.relatedSlugs.map((slug) {
-//                                   return ActionChip(
-//                                     label: Text(
-//                                       slug
-//                                           .replaceFirst('flutter-', '')
-//                                           .replaceFirst('-', ' '),
-//                                     ),
-//                                     onPressed: () {
-//                                       // ✅ Use /flutter/$slug
-//                                       // Navigator.pushReplacementNamed(
-//                                       //   context,
-//                                       //   '/flutter/$slug',
-//                                       // );
-
-// context.go('/tech/flutter/$slug');
-//                                     },
-//                                     backgroundColor: const Color(
-//                                       0xFF2A5298,
-//                                     ).withOpacity(0.1),
-//                                     side: const BorderSide(
-//                                       color: Color(0xFF2A5298),
-//                                     ),
-//                                   );
-//                                 }).toList(),
-//                               ),
-//                             ],
-
-//                             const SizedBox(height: 30),
-//                             // _buildAdPlaceholder(),
-// buildAdPlaceholder(
-//   height: 120,
-//   label: "Sponsored",
-// ),
-//                             NavigationButtons(
-//                               onPrevious: _goToPrevious,
-//                               onNext: _goToNext,
-//                             ),
-//                             const SizedBox(height: 20),
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ),
+//   void _showSnackBar(String message) {
+//     if (!mounted) return;
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(message),
+//         behavior: SnackBarBehavior.floating,
+//         backgroundColor: PremiumTheme.richBlue,
+//         duration: const Duration(seconds: 2),
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
 //       ),
 //     );
 //   }
 
-//   List<Widget> _buildContentWidgets(ThemeData theme) {
+//   List<ContentItem> get _headings {
+//     if (_data == null) return [];
+//     return _data!.content
+//         .where((item) => item.type == ContentType.heading)
+//         .toList();
+//   }
+
+//   void _scrollToHeading(int index) {
+//     if (index < _headingKeys.length && _headingKeys[index].currentContext != null) {
+//       Scrollable.ensureVisible(
+//         _headingKeys[index].currentContext!,
+//         duration: const Duration(milliseconds: 400),
+//         curve: Curves.easeInOutCubic,
+//       );
+//       setState(() => _currentSectionIndex = index);
+//     }
+//   }
+
+//   // ==================== BUILD METHODS ====================
+
+//   @override
+//   Widget build(BuildContext context) {
+//     if (_isLoading) return _buildLoadingScreen();
+//     if (_error != null) return _buildErrorScreen();
+//     if (_data == null) return _buildErrorScreen();
+
+//     final isDesktop = MediaQuery.of(context).size.width > 1000;
+
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       appBar: _buildAppBar(),
+//       body: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+//     );
+//   }
+
+//   PreferredSizeWidget _buildAppBar() {
+//     return AppBar(
+//       title: Text(
+//         _data?.title ?? 'Tutorial',
+//         style: const TextStyle(
+//           fontSize: 16,
+//           fontWeight: FontWeight.w600,
+//           color: Colors.black87,
+//         ),
+//         overflow: TextOverflow.ellipsis,
+//       ),
+//       backgroundColor: Colors.white,
+//       elevation: 0,
+//       centerTitle: false,
+//       leading: IconButton(
+//         icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+//         onPressed: () {
+//           if (context.canPop()) {
+//             context.pop();
+//           } else {
+//             context.go('/${widget.args.category}');
+//           }
+//         },
+//       ),
+//       actions: [
+//         if (_studyStreak > 0)
+//           Padding(
+//             padding: const EdgeInsets.symmetric(horizontal: 8),
+//             child: Center(
+//               child: Container(
+//                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//                 decoration: BoxDecoration(
+//                   color: Colors.orange.withValues(alpha: 0.1),
+//                   borderRadius: BorderRadius.circular(20),
+//                 ),
+//                 child: Row(
+//                   children: [
+//                     const Text('🔥 ', style: TextStyle(fontSize: 14)),
+//                     Text(
+//                       '$_studyStreak day streak',
+//                       style: const TextStyle(
+//                         fontSize: 12,
+//                         fontWeight: FontWeight.w600,
+//                         color: Colors.orange,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
+//         IconButton(
+//           icon: const Icon(Icons.share_rounded),
+//           onPressed: _shareTutorial,
+//           tooltip: 'Share',
+//         ),
+//         IconButton(
+//           icon: Icon(
+//             _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+//             color: _isFavorite ? Colors.red : null,
+//           ),
+//           onPressed: _toggleFavorite,
+//           tooltip: _isFavorite ? 'Remove from favorites' : 'Add to favorites',
+//         ),
+//       ],
+//       bottom: PreferredSize(
+//         preferredSize: const Size.fromHeight(2),
+//         child: LinearProgressIndicator(
+//           value: _scrollProgress,
+//           minHeight: 2,
+//           backgroundColor: Colors.grey.shade200,
+//           valueColor: const AlwaysStoppedAnimation(PremiumTheme.richBlue),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildLoadingScreen() {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             const CircularProgressIndicator(),
+//             const SizedBox(height: 16),
+//             const Text(
+//               'Loading tutorial...',
+//               style: TextStyle(color: Colors.grey),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildErrorScreen() {
+//     return Scaffold(
+//       backgroundColor: Colors.white,
+//       body: Center(
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             const Icon(Icons.error_outline, size: 48, color: Colors.red),
+//             const SizedBox(height: 16),
+//             Text(
+//               _error ?? 'Something went wrong',
+//               style: const TextStyle(color: Colors.grey),
+//             ),
+//             const SizedBox(height: 16),
+//             ElevatedButton(
+//               onPressed: () {
+//                 setState(() {
+//                   _isLoading = true;
+//                   _error = null;
+//                 });
+//                 _loadTutorial();
+//               },
+//               child: const Text('Try Again'),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildDesktopLayout() {
+//     return Row(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         _buildLeftSidebar(),
+//         Expanded(
+//           child: SingleChildScrollView(
+//             controller: _scrollController,
+//             padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+//             child: ConstrainedBox(
+//               constraints: const BoxConstraints(maxWidth: 900),
+//               child: Column(
+//                 crossAxisAlignment: CrossAxisAlignment.start,
+//                 children: [
+//                   _buildEnhancedHeroHeader(),
+//                   const SizedBox(height: 40),
+//                   ..._buildContentItems(),
+//                   const SizedBox(height: 50),
+//                   _buildEditorSection(),
+//                   const SizedBox(height: 50),
+//                   if (_data!.quiz.isNotEmpty) _buildQuizSection(),
+//                   if (_data!.faq.isNotEmpty) _buildFaqSection(),
+//                   const SizedBox(height: 40),
+//                   _buildNavigationButtons(),
+//                 ],
+//               ),
+//             ),
+//           ),
+//         ),
+//         _buildRightSidebar(),
+//       ],
+//     );
+//   }
+
+//   Widget _buildLeftSidebar() {
+//     return Container(
+//       width: 280,
+//       decoration: BoxDecoration(
+//         border: Border(right: BorderSide(color: Colors.grey.shade200)),
+//       ),
+//       child: Column(
+//         children: [
+//           Container(
+//             padding: const EdgeInsets.all(20),
+//             child: Row(
+//               children: [
+//                 Icon(Icons.menu_book, color: PremiumTheme.richBlue),
+//                 const SizedBox(width: 12),
+//                 const Expanded(
+//                   child: Text(
+//                     'Contents',
+//                     style: TextStyle(
+//                       fontSize: 16,
+//                       fontWeight: FontWeight.w600,
+//                     ),
+//                   ),
+//                 ),
+//                 Container(
+//                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+//                   decoration: BoxDecoration(
+//                     color: PremiumTheme.richBlue.withValues(alpha:0.1),
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                   child: Text(
+//                     '${_headings.length}',
+//                     style: TextStyle(
+//                       fontSize: 12,
+//                       color: PremiumTheme.richBlue,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ),
+//           const Divider(height: 1),
+//           Expanded(
+//             child: ListView.builder(
+//               controller: _sideMenuController,
+//               padding: const EdgeInsets.symmetric(vertical: 8),
+//               itemCount: _headings.length,
+//               itemBuilder: (context, index) {
+//                 final item = _headings[index];
+//                 final isActive = index == _currentSectionIndex;
+//                 return _buildSidebarItem(item.value, index, isActive);
+//               },
+//             ),
+//           ),
+//           Container(
+//             padding: const EdgeInsets.all(20),
+//             decoration: BoxDecoration(
+//               border: Border(top: BorderSide(color: Colors.grey.shade200)),
+//             ),
+//             child: Column(
+//               children: [
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                   children: [
+//                     const Text('Progress', style: TextStyle(fontSize: 12)),
+//                     Text(
+//                       '${(_scrollProgress * 100).toInt()}%',
+//                       style: const TextStyle(
+//                         fontSize: 12,
+//                         fontWeight: FontWeight.w600,
+//                         color: PremiumTheme.richBlue,
+//                       ),
+//                     ),
+//                   ],
+//                 ),
+//                 const SizedBox(height: 8),
+//                 LinearProgressIndicator(
+//                   value: _scrollProgress,
+//                   backgroundColor: Colors.grey.shade200,
+//                   color: PremiumTheme.richBlue,
+//                 ),
+//               ],
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildRightSidebar() {
+//     return Container(
+//       width: 260,
+//       padding: const EdgeInsets.all(20),
+//       decoration: BoxDecoration(
+//         border: Border(left: BorderSide(color: Colors.grey.shade200)),
+//       ),
+//       child: SingleChildScrollView(
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             Text(
+//               'Quick Links',
+//               style: const TextStyle(
+//                 fontSize: 12,
+//                 fontWeight: FontWeight.w600,
+//                 color: PremiumTheme.textLight,
+//               ),
+//             ),
+//             const SizedBox(height: 16),
+//             ..._data!.relatedSlugs.take(4).map((slug) => Padding(
+//               padding: const EdgeInsets.only(bottom: 12),
+//               child: GestureDetector(
+//                 onTap: () => context.go('/${widget.args.category}/$slug'),
+//                 child: Container(
+//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+//                   decoration: BoxDecoration(
+//                     color: Colors.grey.shade50,
+//                     borderRadius: BorderRadius.circular(8),
+//                   ),
+//                   child: Row(
+//                     children: [
+//                       Icon(Icons.arrow_forward, size: 14, color: PremiumTheme.richBlue),
+//                       const SizedBox(width: 8),
+//                       Expanded(
+//                         child: Text(
+//                           slug.replaceAll('-', ' '),
+//                           maxLines: 1,
+//                           overflow: TextOverflow.ellipsis,
+//                           style: const TextStyle(
+//                             fontSize: 12,
+//                             color: PremiumTheme.richBlue,
+//                           ),
+//                         ),
+//                       ),
+//                     ],
+//                   ),
+//                 ),
+//               ),
+//             )),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildEnhancedHeroHeader() {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         GestureDetector(
+//           onTap: () => context.go('/${widget.args.category}'),
+//           child: Container(
+//             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//             decoration: BoxDecoration(
+//               color: PremiumTheme.richBlue.withValues(alpha:0.1),
+//               borderRadius: BorderRadius.circular(20),
+//             ),
+//             child: Text(
+//               widget.args.category.toUpperCase(),
+//               style: TextStyle(
+//                 fontSize: 12,
+//                 fontWeight: FontWeight.w600,
+//                 color: PremiumTheme.richBlue,
+//               ),
+//             ),
+//           ),
+//         ),
+//         const SizedBox(height: 20),
+//         Text(
+//           _data!.title,
+//           style: const TextStyle(
+//             fontSize: 36,
+//             fontWeight: FontWeight.bold,
+//             height: 1.2,
+//           ),
+//         ),
+//         const SizedBox(height: 12),
+//         if (_data!.subtitle.isNotEmpty)
+//           Text(
+//             _data!.subtitle,
+//             style: const TextStyle(fontSize: 16, color: Colors.grey),
+//           ),
+//         const SizedBox(height: 20),
+//         Wrap(
+//           spacing: 12,
+//           runSpacing: 10,
+//           children: [
+//             if (_data!.difficulty.isNotEmpty)
+//               _buildMetaChip(
+//                 icon: Icons.signal_cellular_alt,
+//                 label: _data!.difficulty,
+//               ),
+//             if (_data!.readTime.isNotEmpty)
+//               _buildMetaChip(
+//                 icon: Icons.access_time,
+//                 label: _data!.readTime,
+//               ),
+//             _buildMetaChip(
+//               icon: Icons.quiz,
+//               label: '${_data!.quiz.length} Quizzes',
+//             ),
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+
+//   Widget _buildMetaChip({
+//     required IconData icon,
+//     required String label,
+//   }) {
+//     return Container(
+//       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+//       decoration: BoxDecoration(
+//         color: Colors.grey.shade50,
+//         borderRadius: BorderRadius.circular(20),
+//         border: Border.all(color: Colors.grey.shade200),
+//       ),
+//       child: Row(
+//         mainAxisSize: MainAxisSize.min,
+//         children: [
+//           Icon(icon, size: 14, color: Colors.grey),
+//           const SizedBox(width: 6),
+//           Text(
+//             label,
+//             style: TextStyle(fontSize: 12, color: Colors.grey),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildSidebarItem(String title, int index, bool isActive) {
+//     return InkWell(
+//       onTap: () => _scrollToHeading(index),
+//       child: Container(
+//         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+//         decoration: BoxDecoration(
+//           color: isActive ? PremiumTheme.richBlue.withValues(alpha:0.05) : null,
+//           border: Border(
+//             left: BorderSide(
+//               color: isActive ? PremiumTheme.richBlue : Colors.transparent,
+//               width: 3,
+//             ),
+//           ),
+//         ),
+//         child: Text(
+//           title,
+//           style: TextStyle(
+//             fontSize: 13,
+//             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+//             color: isActive ? PremiumTheme.richBlue : Colors.grey.shade700,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   Widget _buildMobileLayout() {
+//     return SingleChildScrollView(
+//       controller: _scrollController,
+//       padding: const EdgeInsets.all(20),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           _buildEnhancedHeroHeader(),
+//           const SizedBox(height: 24),
+//           if (_headings.isNotEmpty) _buildMobileToc(),
+//           const SizedBox(height: 24),
+//           ..._buildContentItems(),
+//           const SizedBox(height: 24),
+//           _buildEditorSection(),
+//           const SizedBox(height: 32),
+//           if (_data!.quiz.isNotEmpty) _buildQuizSection(),
+//           if (_data!.faq.isNotEmpty) _buildFaqSection(),
+//           const SizedBox(height: 32),
+//           _buildNavigationButtons(),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildMobileToc() {
+//     return Container(
+//       padding: const EdgeInsets.all(16),
+//       decoration: BoxDecoration(
+//         color: Colors.grey.shade50,
+//         borderRadius: BorderRadius.circular(12),
+//       ),
+//       child: Column(
+//         crossAxisAlignment: CrossAxisAlignment.start,
+//         children: [
+//           const Text(
+//             'In this tutorial',
+//             style: TextStyle(fontWeight: FontWeight.w600),
+//           ),
+//           const SizedBox(height: 12),
+//           Wrap(
+//             spacing: 8,
+//             runSpacing: 8,
+//             children: _headings.asMap().entries.map((entry) {
+//               final idx = entry.key;
+//               final heading = entry.value;
+//               return GestureDetector(
+//                 onTap: () => _scrollToHeading(idx),
+//                 child: Container(
+//                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+//                   decoration: BoxDecoration(
+//                     color: Colors.white,
+//                     borderRadius: BorderRadius.circular(20),
+//                     border: Border.all(color: Colors.grey.shade200),
+//                   ),
+//                   child: Text(
+//                     heading.value,
+//                     style: TextStyle(fontSize: 12, color: PremiumTheme.richBlue),
+//                   ),
+//                 ),
+//               );
+//             }).toList(),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   List<Widget> _buildContentItems() {
 //     List<Widget> widgets = [];
 //     int headingIdx = 0;
-//     int adCounter = 0;
-//     const adFrequency = 3;
 
 //     for (int i = 0; i < _data!.content.length; i++) {
-//       if (_data!.content[i].type == ContentType.heading) {
+//       final item = _data!.content[i];
+      
+//       if (item.type == ContentType.heading) {
 //         widgets.add(
 //           Container(
-//             key: headingIdx < _headingKeys.length
-//                 ? _headingKeys[headingIdx]
-//                 : null,
-//             child: ContentItemWidget(
-//               item: _data!.content[i],
-//               onCopy: _copyCode,
-//             ),
+//             key: headingIdx < _headingKeys.length ? _headingKeys[headingIdx] : null,
+//             margin: const EdgeInsets.only(top: 24, bottom: 12),
+//             child: ContentItemWidget(item: item, onCopy: _copyCode),
 //           ),
 //         );
 //         headingIdx++;
@@ -1214,113 +1400,151 @@
 //         widgets.add(
 //           Container(
 //             margin: const EdgeInsets.symmetric(vertical: 8),
-//             decoration: BoxDecoration(
-//               color: theme.cardColor,
-//               borderRadius: BorderRadius.circular(16),
-//               boxShadow: [
-//                 BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
-//               ],
-//             ),
-//             child: Padding(
-//               padding: const EdgeInsets.all(6),
-//               child: ContentItemWidget(
-//                 item: _data!.content[i],
-//                 onCopy: _copyCode,
-//               ),
-//             ),
+//             child: ContentItemWidget(item: item, onCopy: _copyCode),
 //           ),
 //         );
 //       }
-//       widgets.add(const SizedBox(height: 12));
-
-//       // Insert ad after every N items, but not too early and not near headings
-//       if (i > 0 &&
-//           i % adFrequency == 0 &&
-//           _data!.content[i].type != ContentType.heading) {
-//         widgets.add(
-//           buildAdPlaceholder(
-//   height: 120,
-//   label: "Sponsored",
-// ),
-//           // _buildAdPlaceholder()
-          
-//           );
-//         widgets.add(const SizedBox(height: 20));
-//         adCounter++;
-//       }
 //     }
 //     return widgets;
+//   }
+
+//   Widget _buildEditorSection() {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         _buildSectionHeader(
+//           icon: Icons.edit_note,
+//           title: 'Try it Yourself',
+//           subtitle: 'Experiment with the code below',
+//         ),
+//         const SizedBox(height: 20),
+//         EditorWidget(
+//           codeController: _codeController,
+//           defaultCode: _data!.defaultCode,
+//           onCopy: _copyCode,
+//           onRun: () => _showSnackBar('Running your code...'),
+//           onReset: () => setState(() => _codeController.text = _data!.defaultCode),
+//         ),
+//       ],
+//     );
+//   }
+
+//   Widget _buildQuizSection() {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
+//       children: [
+//         _buildSectionHeader(
+//           icon: Icons.quiz,
+//           title: 'Test Your Knowledge',
+//           subtitle: '${_data!.quiz.length} questions',
+//         ),
+//         const SizedBox(height: 20),
+//         for (int i = 0; i < _data!.quiz.length; i++)
+//           Padding(
+//             padding: const EdgeInsets.only(bottom: 16),
+//             child: QuizCard(
+//               index: i,
+//               total: _data!.quiz.length,
+//               question: _data!.quiz[i],
+//               state: _quizStates[i],
+//               submitted: _quizSubmitted,
+//               onAnswerSelected: (answerIndex) {
+//                 if (!_quizSubmitted) {
+//                   setState(() => _quizStates[i].selectedAnswer = answerIndex);
+//                 }
+//               },
+//             ),
+//           ),
+//         if (_quizSubmitted)
+//           ScoreCard(score: _score, total: _data!.quiz.length),
+//         const SizedBox(height: 16),
+//         Row(
+//           children: [
+//             Expanded(
+//               child: ElevatedButton(
+//                 onPressed: _submitQuiz,
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: PremiumTheme.richBlue,
+//                   padding: const EdgeInsets.symmetric(vertical: 14),
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(12),
+//                   ),
+//                 ),
+//                 child: const Text('Submit Answers'),
+//               ),
+//             ),
+//             if (_quizSubmitted) ...[
+//               const SizedBox(width: 12),
+//               Expanded(
+//                 child: OutlinedButton(
+//                   onPressed: _resetQuiz,
+//                   style: OutlinedButton.styleFrom(
+//                     padding: const EdgeInsets.symmetric(vertical: 14),
+//                     shape: RoundedRectangleBorder(
+//                       borderRadius: BorderRadius.circular(12),
+//                     ),
+//                   ),
+//                   child: const Text('Try Again'),
+//                 ),
+//               ),
+//             ],
+//           ],
+//         ),
+//       ],
+//     );
 //   }
 
 //   Widget _buildFaqSection() {
 //     return Column(
 //       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
-//         const SizedBox(height: 30),
-//         const Text(
-//           'Frequently Asked Questions',
-//           style: TextStyle(
-//             fontSize: 26,
-//             fontWeight: FontWeight.bold,
-//             color: Color(0xFF1E3C72),
-//           ),
+//         _buildSectionHeader(
+//           icon: Icons.help,
+//           title: 'Frequently Asked Questions',
+//           subtitle: 'Common questions about this topic',
 //         ),
-//         const SizedBox(height: 16),
-
+//         const SizedBox(height: 20),
 //         ..._data!.faq.asMap().entries.map((entry) {
 //           final index = entry.key;
 //           final item = entry.value;
-
 //           return Container(
 //             margin: const EdgeInsets.only(bottom: 12),
 //             decoration: BoxDecoration(
-//               borderRadius: BorderRadius.circular(16),
-//               gradient: LinearGradient(
-//                 colors: [Colors.white, Colors.grey.shade50],
-//               ),
-//               boxShadow: [
-//                 BoxShadow(
-//                   color: Colors.black.withOpacity(0.06),
-//                   blurRadius: 8,
-//                   offset: const Offset(0, 4),
-//                 ),
-//               ],
+//               color: Colors.white,
+//               borderRadius: BorderRadius.circular(12),
+//               border: Border.all(color: Colors.grey.shade200),
 //             ),
-//             child: Theme(
-//               data: Theme.of(
-//                 context,
-//               ).copyWith(dividerColor: Colors.transparent),
-//               child: ExpansionTile(
-//                 tilePadding: const EdgeInsets.symmetric(
-//                   horizontal: 16,
-//                   vertical: 6,
+//             child: ExpansionTile(
+//               leading: Container(
+//                 width: 28,
+//                 height: 28,
+//                 decoration: BoxDecoration(
+//                   color: PremiumTheme.richBlue.withValues(alpha:0.1),
+//                   borderRadius: BorderRadius.circular(8),
 //                 ),
-//                 childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-//                 leading: CircleAvatar(
-//                   backgroundColor: const Color(0xFF2A5298).withOpacity(0.1),
+//                 child: Center(
 //                   child: Text(
 //                     '${index + 1}',
-//                     style: const TextStyle(color: Color(0xFF2A5298)),
-//                   ),
-//                 ),
-//                 title: Text(
-//                   item['question'] ?? '',
-//                   style: const TextStyle(
-//                     fontWeight: FontWeight.w600,
-//                     fontSize: 16,
-//                   ),
-//                 ),
-//                 children: [
-//                   Text(
-//                     item['answer'] ?? '',
 //                     style: TextStyle(
-//                       fontSize: 14,
-//                       color: Colors.grey[700],
-//                       height: 1.5,
+//                       color: PremiumTheme.richBlue,
+//                       fontWeight: FontWeight.bold,
 //                     ),
 //                   ),
-//                 ],
+//                 ),
 //               ),
+//               title: Text(
+//                 item['question'] ?? '',
+//                 style: const TextStyle(fontWeight: FontWeight.w600),
+//               ),
+//               children: [
+//                 Padding(
+//                   padding: const EdgeInsets.all(16),
+//                   child: Text(
+//                     item['answer'] ?? '',
+//                     style: const TextStyle(color: Colors.grey, height: 1.5),
+//                   ),
+//                 ),
+//               ],
 //             ),
 //           );
 //         }),
@@ -1328,158 +1552,72 @@
 //     );
 //   }
 
-// Widget buildAdPlaceholder({
-//   double height = 110,
-//   String label = 'Advertisement',
-//   bool isLoading = false,
-// }) {
-//   return Container(
-//     height: height,
-//     margin: const EdgeInsets.symmetric(vertical: 8),
-//     decoration: BoxDecoration(
-//       gradient: LinearGradient(
-//         colors: [
-//           Colors.grey.shade200,
-//           Colors.grey.shade100,
-//         ],
-//       ),
-//       borderRadius: BorderRadius.circular(20),
-//       border: Border.all(color: Colors.grey.shade300),
-//     ),
-//     child: Stack(
+//   Widget _buildSectionHeader({
+//     required IconData icon,
+//     required String title,
+//     String? subtitle,
+//   }) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.start,
 //       children: [
-//         // 🔹 Ad Label (Top Right)
-//         Positioned(
-//           top: 8,
-//           right: 10,
-//           child: Container(
-//             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-//             decoration: BoxDecoration(
-//               color: Colors.black.withOpacity(0.05),
-//               borderRadius: BorderRadius.circular(6),
+//         Row(
+//           children: [
+//             Icon(icon, color: PremiumTheme.richBlue),
+//             const SizedBox(width: 12),
+//             Text(
+//               title,
+//               style: const TextStyle(
+//                 fontSize: 24,
+//                 fontWeight: FontWeight.bold,
+//               ),
 //             ),
-//             child: const Text(
-//               "Ad",
-//               style: TextStyle(fontSize: 10, color: Colors.black54),
+//           ],
+//         ),
+//         if (subtitle != null) ...[
+//           const SizedBox(height: 8),
+//           Text(subtitle, style: const TextStyle(color: Colors.grey)),
+//         ],
+//       ],
+//     );
+//   }
+
+//   Widget _buildNavigationButtons() {
+//     final topics = widget.args.allTopics;
+//     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
+//     final isFirst = currentIndex <= 0;
+//     final isLast = currentIndex >= topics.length - 1;
+
+//     return Row(
+//       children: [
+//         Expanded(
+//           child: OutlinedButton.icon(
+//             onPressed: isFirst ? null : _goToPrevious,
+//             icon: const Icon(Icons.arrow_back, size: 18),
+//             label: const Text('Previous'),
+//             style: OutlinedButton.styleFrom(
+//               padding: const EdgeInsets.symmetric(vertical: 14),
+//               shape: RoundedRectangleBorder(
+//                 borderRadius: BorderRadius.circular(12),
+//               ),
 //             ),
 //           ),
 //         ),
-
-//         // 🔹 Center Content
-//         Center(
-//           child: isLoading
-//               ? const SizedBox(
-//                   width: 24,
-//                   height: 24,
-//                   child: CircularProgressIndicator(strokeWidth: 2),
-//                 )
-//               : Column(
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: [
-//                     Icon(
-//                       Icons.campaign_outlined,
-//                       color: Colors.grey.shade500,
-//                       size: 28,
-//                     ),
-//                     const SizedBox(height: 6),
-//                     Text(
-//                       label,
-//                       style: TextStyle(
-//                         color: Colors.grey.shade600,
-//                         fontSize: 13,
-//                         fontWeight: FontWeight.w500,
-//                       ),
-//                     ),
-//                   ],
-//                 ),
+//         const SizedBox(width: 16),
+//         Expanded(
+//           child: ElevatedButton.icon(
+//             onPressed: isLast ? null : _goToNext,
+//             icon: const Icon(Icons.arrow_forward, size: 18),
+//             label: Text(isLast ? 'Completed' : 'Next'),
+//             style: ElevatedButton.styleFrom(
+//               backgroundColor: isLast ? Colors.green : PremiumTheme.richBlue,
+//               padding: const EdgeInsets.symmetric(vertical: 14),
+//               shape: RoundedRectangleBorder(
+//                 borderRadius: BorderRadius.circular(12),
+//               ),
+//             ),
+//           ),
 //         ),
 //       ],
-//     ),
-//   );
-// }
-// }
-
-// // ---------------------------- Related Slugs Wrap ----------------------------
-// class RelatedSlugsWrap extends StatelessWidget {
-//   final List<String> slugs;
-
-//   const RelatedSlugsWrap({
-//     super.key,
-//     required this.slugs,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (slugs.isEmpty) return const SizedBox.shrink();
-
-//     return Wrap(
-//       spacing: 10,
-//       runSpacing: 10,
-//       children: slugs.map((slug) {
-//         return _SlugChip(slug: slug);
-//       }).toList(),
 //     );
-//   }
-// }
-
-// // ---------------------------- Slug Chip ----------------------------
-// class _SlugChip extends StatelessWidget {
-//   final String slug;
-
-//   const _SlugChip({required this.slug});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final theme = Theme.of(context);
-
-//     return ActionChip(
-//       elevation: 0,
-//       pressElevation: 2,
-//       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-
-//       label: Text(
-//         _formatSlug(slug),
-//         style: theme.textTheme.labelMedium?.copyWith(
-//           fontWeight: FontWeight.w600,
-//         ),
-//       ),
-
-//       avatar: const Icon(
-//         Icons.tag,
-//         size: 16,
-//         color: Color(0xFF2A5298),
-//       ),
-
-//       backgroundColor: const Color(0xFF2A5298).withOpacity(0.08),
-
-//       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(20),
-//         side: const BorderSide(
-//           color: Color(0xFF2A5298),
-//           width: 1,
-//         ),
-//       ),
-
-//       onPressed: () => _navigate(context, slug),
-//     );
-//   }
-
-//   // ---------------------------- Navigation ----------------------------
-//   void _navigate(BuildContext context, String slug) {
-//     // Navigator.pushReplacementNamed(
-//     //   context,
-//     //   '/flutter/$slug',
-//     // );
-//     context.go('/tech/flutter/$slug');
-//   }
-
-//   // ---------------------------- Slug Formatter ----------------------------
-//   String _formatSlug(String slug) {
-//     return slug
-//         .replaceFirst('flutter-', '')
-//         .split('-')
-//         .map((word) =>
-//             word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '')
-//         .join(' ');
 //   }
 // }

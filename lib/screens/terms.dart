@@ -18,9 +18,9 @@ class _TermsPageState extends State<TermsPage> {
     super.initState();
 
     MetaService.updateMetaTags(
-      title: "Terms of Service | RevoLearn User Agreement",
+      title: "Terms of Service | RevoChamp User Agreement",
       description:
-          "Review RevoLearn terms and conditions to understand your rights and responsibilities while using our platform.",
+          "Review RevoChamp terms and conditions to understand your rights and responsibilities while using our platform.",
       slug: "terms",
     );
 
@@ -29,17 +29,17 @@ class _TermsPageState extends State<TermsPage> {
       "@type": "WebPage",
       "name": "Terms of Service",
       "description":
-          "Review RevoLearn terms and conditions to understand your rights and responsibilities.",
+          "Review RevoChamp terms and conditions to understand your rights and responsibilities.",
       "url": "https://revochamp.site/tech/terms",
       "keywords":
-          "terms of service revolearn, user agreement, platform terms, legal conditions, learning platform rules",
+          "terms of service RevoChamp, user agreement, platform terms, legal conditions, learning platform rules",
       "dateModified": "2026-01-01",
       "inLanguage": "en",
       "mainEntityOfPage": {
         "@type": "WebPage",
         "@id": "https://revochamp.site/tech/terms",
       },
-      "publisher": {"@type": "Organization", "name": "RevoLearn"},
+      "publisher": {"@type": "Organization", "name": "RevoChamp"},
     });
 
     MetaService.setBreadcrumbData(
@@ -62,7 +62,7 @@ class _TermsPageState extends State<TermsPage> {
           // App Bar
           SliverAppBar(
             pinned: true,
-            backgroundColor: Colors.white.withOpacity(0.95),
+            backgroundColor: Colors.white.withValues(alpha:0.95),
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
@@ -109,7 +109,7 @@ class _TermsPageState extends State<TermsPage> {
               preferredSize: const Size.fromHeight(1),
               child: Container(
                 height: 1,
-                color: PremiumTheme.lightGray.withOpacity(0.6),
+                color: PremiumTheme.lightGray.withValues(alpha:0.6),
               ),
             ),
           ),
@@ -384,7 +384,7 @@ class _TermsPageState extends State<TermsPage> {
                           _AdditionalTermCard(
                             title: "Contact Us",
                             description:
-                                "Questions? Reach out to legal@revolearn.com",
+                                "Questions? Reach out to legal@RevoChamp.com",
                             icon: "📧",
                           ),
                         ],
@@ -419,7 +419,7 @@ class _TermsPageState extends State<TermsPage> {
                   const Text("🤝", style: TextStyle(fontSize: 48)),
                   const SizedBox(height: 16),
                   Text(
-                    "By using RevoLearn, you agree to these terms",
+                    "By using RevoChamp, you agree to these terms",
                     style: TextStyle(
                       fontSize: isMobile ? 20 : 24,
                       fontWeight: FontWeight.w800,
@@ -638,7 +638,7 @@ class _TermsPageState extends State<TermsPage> {
           shrinkWrap: true,
           mainAxisSpacing: 24,
           crossAxisSpacing: 24,
-          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 2.5,
+          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 1.8,
           physics: const NeverScrollableScrollPhysics(),
           children: const [
             _TermCard(
@@ -834,7 +834,7 @@ class _TermsPageState extends State<TermsPage> {
           ),
           const SizedBox(height: 20),
           _buildBulletPoint(
-            "All course materials are property of RevoLearn",
+            "All course materials are property of RevoChamp",
             isMobile,
           ),
           _buildBulletPoint(

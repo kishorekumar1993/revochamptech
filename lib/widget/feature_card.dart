@@ -3,14 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:techtutorial/core/theme.dart';
 
-import '../screens/home.dart';
 
 class FeatureCard extends StatelessWidget {
   final String emoji;
   final String title;
   final String description;
 
-  const FeatureCard({
+  const FeatureCard({super.key, 
     required this.emoji,
     required this.title,
     required this.description,

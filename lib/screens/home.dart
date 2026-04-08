@@ -10,7 +10,7 @@ import 'package:techtutorial/widget/course_detail_layout.dart';
 import 'package:techtutorial/widget/feature_card.dart';
 import 'package:techtutorial/widget/footer_card.dart';
 import 'package:techtutorial/widget/stats_card.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 import '../widget/category_card.dart';
 
@@ -65,9 +65,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     super.initState();
 
     MetaService.updateMetaTags(
-      title: "RevoLearn - Free Programming Courses & Tech Learning Platform",
+      title: "RevoChamp - Free Programming Courses & Tech Learning Platform",
       description:
-          "Learn Flutter, React, Backend, DevOps, AI and more with RevoLearn. Free online programming courses designed for developers.",
+          "Learn Flutter, React, Backend, DevOps, AI and more with RevoChamp. Free online programming courses designed for developers.",
       slug: "",
     );
 
@@ -76,13 +76,13 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       "@graph": [
         {
           "@type": "Organization",
-          "name": "RevoLearn",
+          "name": "RevoChamp",
           "url": "https://revochamp.site/tech",
           "logo": "https://revochamp.site/logo.png",
         },
         {
           "@type": "WebSite",
-          "name": "RevoLearn",
+          "name": "RevoChamp",
           "url": "https://revochamp.site/tech",
           "potentialAction": {
             "@type": "SearchAction",
@@ -102,7 +102,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           "name": "Are the courses free?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, all courses on RevoLearn are completely free.",
+            "text": "Yes, all courses on RevoChamp are completely free.",
           },
         },
         {
@@ -384,7 +384,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         ),
         const SizedBox(width: 10),
         const Text(
-          "RevoLearn",
+          "RevoChamp",
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -634,6 +634,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 
+  Future<void> openUrl(String url) async {
+    final Uri uri = Uri.parse(url);
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   Widget _buildFeaturedCoursesSection(List<Course> courses, bool isMobile) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -696,11 +704,26 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   crossAxisCount: crossAxisCount,
                   crossAxisSpacing: 24,
                   mainAxisSpacing: 24,
-                  childAspectRatio: constraints.maxWidth > 600 ? 0.9 : 1.4,
+                  childAspectRatio: constraints.maxWidth > 900
+                      ? 0.85
+                      : constraints.maxWidth > 600
+                      ? 0.82
+                      : 0.9,
                 ),
                 itemBuilder: (_, i) => CourseCard(
                   course: courses[i],
-                  onTap: () => _showCourseDetail(courses[i]),
+                  onTap: () {
+                    if (courses[i].title == "RevoChamp Learning") {
+                      _showSnackBar("🎓 Starting ${courses[i].title}");
+                      context.go('/courses');
+                    } else if (courses[i].title == "Interview Prep") {
+                    } else if (courses[i].title == "Mock Interview") {
+                      context.go('/mockinterview');
+                    } else {
+                      openUrl("https://revochamp.site/blog/");
+                    }
+                    // _showCourseDetail(courses[i]);
+                  },
                   onStartLearning: () =>
                       _showSnackBar("🎓 Starting ${courses[i].title}"),
                 ),
@@ -759,7 +782,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 shrinkWrap: true,
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 1.6,
+                childAspectRatio: constraints.maxWidth > 600 ? 1.6 : 1.0,
                 physics: const NeverScrollableScrollPhysics(),
                 children: categories.map((category) {
                   return CategoryCard(
@@ -792,7 +815,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text(
-            "Why Choose RevoLearn?",
+            "Why Choose RevoChamp?",
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w800,
@@ -820,7 +843,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 shrinkWrap: true,
                 mainAxisSpacing: 24,
                 crossAxisSpacing: 24,
-                childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 2.5,
+                childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 2.1,
                 physics: const NeverScrollableScrollPhysics(),
                 children: const [
                   FeatureCard(
@@ -890,6 +913,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
           ),
           const SizedBox(height: 8),
+
           Text(
             "Trusted by learners worldwide",
             style: TextStyle(
@@ -906,7 +930,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 shrinkWrap: true,
                 mainAxisSpacing: 30,
                 crossAxisSpacing: 20,
-                childAspectRatio: constraints.maxWidth > 600 ? 1.8 : 1.4,
+                childAspectRatio: constraints.maxWidth > 600 ? 1.8 : 1.2,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(24),
                 children: [
@@ -982,7 +1006,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "\"RevoLearn completely transformed my career. The quality of courses is outstanding, and the fact that it's free makes it truly revolutionary. I went from a complete beginner to landing my first developer job in 6 months!\"",
+                  "\"RevoChamp completely transformed my career. The quality of courses is outstanding, and the fact that it's free makes it truly revolutionary. I went from a complete beginner to landing my first developer job in 6 months!\"",
                   style: TextStyle(
                     fontSize: isMobile ? 14 : 15,
                     color: PremiumTheme.textMuted,
@@ -1079,4 +1103,3 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     );
   }
 }
-

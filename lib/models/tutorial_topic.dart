@@ -4,7 +4,7 @@ class TutorialTopic {
   final String emoji;
   final String category;
   final String level;
-final double? estimatedHours; // <-- ADD THIS
+  final double? estimatedHours; // <-- ADD THIS
 
   TutorialTopic({
     required this.slug,
@@ -12,7 +12,7 @@ final double? estimatedHours; // <-- ADD THIS
     required this.emoji,
     required this.category,
     required this.level,
-required    this.estimatedHours,
+    required this.estimatedHours,
   });
 
   factory TutorialTopic.fromJson(Map<String, dynamic> json) {

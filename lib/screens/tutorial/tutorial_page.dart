@@ -1,18 +1,20 @@
+// ==================== ENHANCED TUTORIAL PAGE - PRODUCTION READY ====================
+// Comprehensive improvements for SEO, design, layout, and functionality
+
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
 import 'dart:html' as html;
-import 'dart:js' as js;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:techtutorial/screens/AdsenseAd.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:techtutorial/screens/tutorial/content_widget.dart';
 
 import '../../core/meta_service.dart';
+import '../../core/theme.dart';
 import '../../models/content_item.dart';
 import '../../models/quiz_question.dart';
 import '../../models/tutorial_data.dart';
@@ -21,19 +23,120 @@ import 'editor_widget.dart';
 import 'quiz_widgets.dart';
 import 'package:http/http.dart' as http;
 
-// ─── Design tokens ────────────────────────────────────────────────────────────
-const _navy = Color(0xFF0A0F1E);
-const _surface = Color(0xFF111827);
-const _card = Color(0xFF1A2235);
-const _accent = Color(0xFF3B82F6);
-const _accentGlow = Color(0xFF60A5FA);
-const _accentSoft = Color(0xFF1D3461);
-const _success = Color(0xFF10B981);
-const _border = Color(0xFF1E2D45);
-const _textPrimary = Color(0xFFE2E8F0);
-const _textSecondary = Color(0xFF94A3B8);
-const _textMuted = Color(0xFF475569);
+// ==================== ANALYTICS & TRACKING ====================
+class TutorialAnalytics {
+  static final _analytics = FirebaseAnalytics.instance;
 
+  static Future<void> trackTutorialView(
+    String category,
+    String slug,
+    String title,
+  ) async {
+    await _analytics.logEvent(
+      name: 'tutorial_viewed',
+      parameters: {
+        'tutorial_id': '$category/$slug',
+        'title': title,
+        'category': category,
+        'timestamp': DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
+  static Future<void> trackSectionCompleted(
+    String slug,
+    String sectionTitle,
+    int scrollProgress,
+  ) async {
+    await _analytics.logEvent(
+      name: 'section_completed',
+      parameters: {
+        'tutorial_id': slug,
+        'section': sectionTitle,
+        'progress_percent': scrollProgress,
+      },
+    );
+  }
+
+  static Future<void> trackQuizSubmitted(
+    String slug,
+    int score,
+    int total,
+  ) async {
+    await _analytics.logEvent(
+      name: 'quiz_submitted',
+      parameters: {
+        'tutorial_id': slug,
+        'score': score,
+        'total': total,
+        'percentage': (score / total * 100).toInt(),
+      },
+    );
+  }
+
+  static Future<void> trackCodeCopied(String slug, String language) async {
+    await _analytics.logEvent(
+      name: 'code_copied',
+      parameters: {
+        'tutorial_id': slug,
+        'language': language,
+      },
+    );
+  }
+}
+
+// ==================== USER PROGRESS TRACKING ====================
+class UserProgressManager {
+  static Future<void> saveProgress(
+    String slug,
+    int scrollProgress,
+    List<int?> quizAnswers,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    
+    await prefs.setString(
+      'progress_$slug',
+      jsonEncode({
+        'slug': slug,
+        'scrollProgress': scrollProgress,
+        'quizAnswers': quizAnswers,
+        'lastAccessed': DateTime.now().toIso8601String(),
+        'completed': scrollProgress >= 90,
+      }),
+    );
+  }
+
+  static Future<Map<String, dynamic>?> loadProgress(String slug) async {
+    final prefs = await SharedPreferences.getInstance();
+    final data = prefs.getString('progress_$slug');
+    return data != null ? jsonDecode(data) : null;
+  }
+
+  static Future<void> updateStudyStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lastAccess = prefs.getString('last_access');
+    final today = DateTime.now().toString().split(' ')[0];
+    
+    if (lastAccess == null) {
+      await prefs.setInt('current_streak', 1);
+    } else if (lastAccess != today) {
+      final yesterday = DateTime.now()
+          .subtract(const Duration(days: 1))
+          .toString()
+          .split(' ')[0];
+      if (lastAccess == yesterday) {
+        final streak = prefs.getInt('current_streak') ?? 0;
+        await prefs.setInt('current_streak', streak + 1);
+      } else {
+        await prefs.setInt('current_streak', 1);
+      }
+    }
+    
+    await prefs.setString('last_access', today);
+  }
+}
+
+// ==================== TUTORIAL ARGUMENTS ====================
 class TutorialArguments {
   final String slug;
   final String category;
@@ -46,6 +149,7 @@ class TutorialArguments {
   });
 }
 
+// ==================== MAIN TUTORIAL PAGE ====================
 class TutorialPage extends StatefulWidget {
   final TutorialArguments args;
   const TutorialPage({super.key, required this.args});
@@ -62,38 +166,58 @@ class _TutorialPageState extends State<TutorialPage>
   String get tutorialsBaseUrl =>
       'https://json.revochamp.site/${widget.args.category}/';
 
+  // Core data
   TutorialData? _data;
   bool _isLoading = true;
   String? _error;
 
+  // Quiz state
   List<QuizQuestionState> _quizStates = [];
   bool _quizSubmitted = false;
   int _score = 0;
 
+  // Animation
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  // Controllers
   final TextEditingController _codeController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final ScrollController _sideMenuController = ScrollController();
 
+  // Tracking
   final List<GlobalKey> _headingKeys = [];
   double _scrollProgress = 0.0;
   int _currentSectionIndex = 0;
+  bool _isFavorite = false;
 
-  final GlobalKey _contentKey = GlobalKey();
+  // Study stats
+  int _studyStreak = 0;
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _loadTutorial();
+    _setupScrollListeners();
+    _checkFavorite();
+    _loadStudyStreak();
+    _trackTutorialView();
+    UserProgressManager.updateStudyStreak();
+  }
+
+  void _initializeAnimations() {
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 500),
+      duration: const Duration(milliseconds: 600),
     );
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
-      curve: Curves.easeIn,
+      curve: Curves.easeOutCubic,
     );
-    _loadTutorial();
+  }
+
+  void _setupScrollListeners() {
     _scrollController.addListener(_updateScrollProgress);
     _scrollController.addListener(_updateActiveHeading);
   }
@@ -109,43 +233,112 @@ class _TutorialPageState extends State<TutorialPage>
     super.dispose();
   }
 
+  // ==================== SCROLL TRACKING ====================
   void _updateScrollProgress() {
-    if (!mounted) return;
-    if (_scrollController.hasClients) {
-      final max = _scrollController.position.maxScrollExtent;
-      if (max > 0) {
-        setState(() {
-          _scrollProgress = _scrollController.offset / max;
-        });
+    if (!mounted || !_scrollController.hasClients) return;
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    if (maxScroll <= 0) return;
+
+    final progress = _scrollController.offset / maxScroll;
+    if ((_scrollProgress - progress).abs() > 0.01) {
+      setState(() => _scrollProgress = progress);
+      
+      // Save progress periodically
+      if (progress % 0.1 < 0.01) {
+        UserProgressManager.saveProgress(
+          widget.args.slug,
+          (progress * 100).toInt(),
+          _quizStates.map((s) => s.selectedAnswer).toList(),
+        );
       }
     }
   }
 
   void _updateActiveHeading() {
-    if (!mounted) return;
-    if (_headingKeys.isEmpty) return;
+    if (!mounted || _headingKeys.isEmpty) return;
+    
     int activeIndex = 0;
     for (int i = 0; i < _headingKeys.length; i++) {
-      final key = _headingKeys[i];
-      final context = key.currentContext;
+      final context = _headingKeys[i].currentContext;
       if (context != null) {
         final box = context.findRenderObject() as RenderBox?;
         if (box != null) {
           final position = box.localToGlobal(Offset.zero).dy;
-          if (position > 0 && position < 200) {
+          if (position > 0 && position < 250) {
             activeIndex = i;
             break;
           }
         }
       }
     }
+    
     if (_currentSectionIndex != activeIndex) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() => _currentSectionIndex = activeIndex);
-        }
-      });
+      setState(() => _currentSectionIndex = activeIndex);
+      TutorialAnalytics.trackSectionCompleted(
+        widget.args.slug,
+        _headings[activeIndex].value,
+        (_scrollProgress * 100).toInt(),
+      );
+      
+      _animateSidebarScroll(activeIndex);
     }
+  }
+
+  void _animateSidebarScroll(int index) {
+    if (!_sideMenuController.hasClients) return;
+    
+    final double itemHeight = 48.0;
+    final double targetOffset = (index * itemHeight) - 
+        _sideMenuController.position.viewportDimension / 2;
+    
+    _sideMenuController.animateTo(
+      targetOffset.clamp(0.0, _sideMenuController.position.maxScrollExtent),
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  // ==================== FAVORITES & PREFERENCES ====================
+  Future<void> _checkFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favorites = prefs.getStringList('favorites') ?? [];
+    setState(() {
+      _isFavorite = favorites.contains('${widget.args.category}/${widget.args.slug}');
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final prefs = await SharedPreferences.getInstance();
+    final favorites = prefs.getStringList('favorites') ?? [];
+    final key = '${widget.args.category}/${widget.args.slug}';
+    
+    if (_isFavorite) {
+      favorites.remove(key);
+      _showSnackBar('Removed from favorites');
+    } else {
+      favorites.add(key);
+      _showSnackBar('Added to favorites');
+    }
+    
+    await prefs.setStringList('favorites', favorites);
+    setState(() => _isFavorite = !_isFavorite);
+  }
+
+  Future<void> _loadStudyStreak() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _studyStreak = prefs.getInt('current_streak') ?? 0;
+    });
+  }
+
+  // ==================== TRACKING & SEO ====================
+  void _trackTutorialView() {
+    TutorialAnalytics.trackTutorialView(
+      widget.args.category,
+      widget.args.slug,
+      _data?.title ?? '',
+    );
   }
 
   Future<void> _loadTutorial() async {
@@ -164,7 +357,10 @@ class _TutorialPageState extends State<TutorialPage>
       } else {
         final url = Uri.parse('$tutorialsBaseUrl$slug.json');
         debugPrint('Loading tutorial from: $url');
-        final response = await http.get(url);
+        final response = await http.get(url).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => http.Response('Timeout', 408),
+        );
 
         if (response.statusCode == 200) {
           final json = jsonDecode(response.body);
@@ -181,14 +377,10 @@ class _TutorialPageState extends State<TutorialPage>
           return;
         }
       }
+      
       _initializeFromData();
       setState(() => _isLoading = false);
       _animationController.forward();
-
-      // if (kIsWeb) {
-      //   final cleanUrl = '/${widget.args.category}/$slug';
-      //   MetaService.setCanonical('https://revochamp.site/tech$cleanUrl');
-      // }
     } catch (e) {
       setState(() {
         _error = 'Failed to load tutorial: $e';
@@ -203,27 +395,54 @@ class _TutorialPageState extends State<TutorialPage>
       for (var item in json['content'] ?? []) {
         final type = item['type'];
         final value = item['value'];
-        if (type == 'heading') {
-          contentList.add(
-            ContentItem(type: ContentType.heading, value: value as String),
-          );
-        } else if (type == 'text') {
-          contentList.add(
-            ContentItem(type: ContentType.text, value: value as String),
-          );
-        } else if (type == 'code') {
-          contentList.add(
-            ContentItem(
-              type: ContentType.code,
-              value: value as String,
-              language: item['language'],
-            ),
-          );
-        } else if (type == 'list') {
-          final listValue = (value as List).join('\n');
-          contentList.add(
-            ContentItem(type: ContentType.list, value: listValue),
-          );
+        
+        switch (type) {
+          case 'heading':
+            contentList.add(
+              ContentItem(type: ContentType.heading, value: value as String),
+            );
+          case 'subheading':
+            contentList.add(
+              ContentItem(type: ContentType.subheading, value: value as String),
+            );
+          case 'text':
+            contentList.add(
+              ContentItem(type: ContentType.text, value: value as String),
+            );
+          case 'code':
+            contentList.add(
+              ContentItem(
+                type: ContentType.code,
+                value: value as String,
+                language: item['language'],
+              ),
+            );
+          case 'list':
+            final listItems = value is List
+                ? value.map((e) => e.toString()).toList()
+                : (value as String)
+                    .split('\n')
+                    .where((l) => l.trim().isNotEmpty)
+                    .toList();
+            contentList.add(
+              ContentItem(type: ContentType.list, value: listItems),
+            );
+          case 'table':
+            contentList.add(
+              ContentItem(
+                type: ContentType.table,
+                value: '',
+                tableData: item['value'] as Map<String, dynamic>?,
+              ),
+            );
+          case 'callout':
+            contentList.add(
+              ContentItem(
+                type: ContentType.callout,
+                value: value as String,
+                variant: item['variant'] as String? ?? 'info',
+              ),
+            );
         }
       }
     } catch (e) {
@@ -260,37 +479,237 @@ class _TutorialPageState extends State<TutorialPage>
     );
   }
 
+  // ==================== CONSOLIDATED SEO INJECTION ====================
+  void _injectFullContent() {
+    if (!kIsWeb) return;
+
+    // Remove any previously injected hidden SEO container
+    html.document.querySelector('#seo-hidden-content')?.remove();
+
+    final container = html.DivElement()
+      ..id = 'seo-hidden-content'
+      ..style.position = 'absolute'
+      ..style.left = '-9999px'
+      ..style.top = '-9999px'
+      ..style.width = '1px'
+      ..style.height = '1px'
+      ..style.overflow = 'hidden';
+
+    // H1 title
+    container.append(html.HeadingElement.h1()..text = _data!.title);
+
+    // All content sections (headings, text, code)
+    for (final item in _data!.content) {
+      if (item.type == ContentType.heading) {
+        container.append(html.HeadingElement.h2()..text = item.value);
+      } else if (item.type == ContentType.subheading) {
+        container.append(html.HeadingElement.h3()..text = item.value);
+      } else if (item.type == ContentType.text) {
+        container.append(html.ParagraphElement()..text = item.value);
+      } else if (item.type == ContentType.code) {
+        final pre = html.PreElement()..text = item.value;
+        container.append(pre);
+      }
+    }
+
+    // FAQ content
+    for (final faq in _data!.faq) {
+      container.append(html.HeadingElement.h3()..text = faq['question'] ?? '');
+      container.append(html.ParagraphElement()..text = faq['answer'] ?? '');
+    }
+
+    // Internal links (related tutorials)
+    for (final slug in _data!.relatedSlugs) {
+      final a = html.AnchorElement()
+        ..href = '/${widget.args.category}/$slug'
+        ..text = slug;
+      container.append(a);
+    }
+
+    html.document.body?.append(container);
+  }
+
   void _initializeFromData() {
     if (_data == null) return;
+    
     _quizStates = List.generate(_data!.quiz.length, (_) => QuizQuestionState());
     _codeController.text = _data!.defaultCode;
+    
     _headingKeys.clear();
     for (var i = 0; i < _data!.content.length; i++) {
       if (_data!.content[i].type == ContentType.heading) {
         _headingKeys.add(GlobalKey());
       }
     }
-    _updateSeo();
-    _updateStructuredData();
-
+    
+    // ✅ Enable all meta tags and structured data
+    _updateComprehensiveSeo();
+    _updateAdvancedStructuredData();
+    
+    // ✅ Single injection method
+    _injectFullContent();
+    
     if (kIsWeb) {
       _addHiddenH1(_data!.title);
-      _injectFaqHtml();
-      _injectInternalLinks();
-      _injectContentHtml();
-
-      final parents = [
-        {
-          'name': '${widget.args.category.toUpperCase()} Tutorials',
-          'url': 'https://revochamp.site/tech/${widget.args.category}',
-        },
-      ];
-      MetaService.setBreadcrumbData(
-        title: _data!.title,
-        slug: '${widget.args.category}/${widget.args.slug}',
-        parents: parents,
-      );
+      _setupBreadcrumbs();
     }
+  }
+
+  // ==================== ADVANCED SEO (META TAGS ENABLED) ====================
+  void _updateComprehensiveSeo() {
+    final baseUrl = 'https://revochamp.site/tech';
+    final pageUrl = '$baseUrl/${widget.args.category}/${widget.args.slug}';
+    final imageUrl = _data!.meta?['image'] ?? '$baseUrl/og-default.png';
+
+    // Basic meta (title, description, keywords)
+    MetaService.updateMetaTags(
+      title: '${_data!.title} - Learn ${widget.args.category.toUpperCase()} | Revochamp',
+      description: _generateSeoDescription(),
+      slug: '${widget.args.category}/${widget.args.slug}',
+      keywords: _generateKeywords(),
+      isArticle: true,
+      imageUrl: imageUrl,
+    );
+
+    // Open Graph
+    MetaService.setOGTags(
+      title: _data!.title,
+      description: _generateSeoDescription(),
+      image: imageUrl,
+      url: pageUrl,
+    );
+
+    // Twitter Card
+    MetaService.setTwitterTags(
+      // card: 'summary_large_image',
+      title: _data!.title,
+      description: _generateSeoDescription(),
+      image: imageUrl,
+    );
+
+    // Canonical URL
+    MetaService.setCanonical(pageUrl);
+    
+    // Robots meta
+    MetaService.setRobotsMeta('index, follow, max-image-preview:large');
+  }
+
+  void _updateAdvancedStructuredData() {
+    final baseUrl = 'https://revochamp.site';
+    final pageUrl = '$baseUrl/tech/${widget.args.category}/${widget.args.slug}';
+    
+    final schemaGraph = [
+      // Article
+      {
+        "@context": "https://schema.org",
+        "@type": "TechArticle",
+        "@id": pageUrl,
+        "headline": _data!.title,
+        "description": _generateSeoDescription(),
+        "image": {
+          "@type": "ImageObject",
+          "url": _data!.meta?['image'] ?? "$baseUrl/og-default.png",
+        },
+        "author": {
+          "@type": "Organization",
+          "name": "Revochamp",
+          "url": baseUrl,
+        },
+        "datePublished": _data!.meta?['datePublished'] ?? DateTime.now().toIso8601String(),
+        "dateModified": _data!.meta?['dateModified'] ?? DateTime.now().toIso8601String(),
+        "articleBody": _extractArticleBody(),
+        "learningResourceType": "Tutorial",
+      },
+
+      // Breadcrumb
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": baseUrl,
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": widget.args.category.toUpperCase(),
+            "item": "$baseUrl/tech/${widget.args.category}",
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": _data!.title,
+            "item": pageUrl,
+          },
+        ],
+      },
+
+      // FAQ if exists
+      if (_data!.faq.isNotEmpty)
+        {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          "mainEntity": _data!.faq
+              .map((f) => {
+                "@type": "Question",
+                "name": f['question'],
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": f['answer'],
+                },
+              })
+              .toList(),
+        },
+    ];
+
+    MetaService.setStructuredData({
+      "@context": "https://schema.org",
+      "@graph": schemaGraph,
+    });
+  }
+
+  String _generateSeoDescription() {
+    if (_data!.content.isEmpty) {
+      return 'Master ${_data!.title} with interactive examples and quizzes.';
+    }
+    
+    final firstText = _data!.content
+        .firstWhere((item) => item.type == ContentType.text,
+            orElse: () => ContentItem(type: ContentType.text, value: ''))
+        .value
+        .replaceAll(RegExp(r'[*_#\[\]()]'), '');
+    
+    return firstText.substring(0, min(155, firstText.length)) + '...';
+  }
+
+  List<String> _generateKeywords() {
+    return [
+      _data!.title.toLowerCase(),
+      widget.args.category,
+      'tutorial',
+      'learn',
+      'interactive',
+      ..._extractKeywordsFromContent(),
+    ];
+  }
+
+  List<dynamic> _extractKeywordsFromContent() {
+    return _data!.content
+        .where((item) => item.type == ContentType.heading)
+        .map((item) => item.value.toLowerCase())
+        .take(5)
+        .toList();
+  }
+
+  String _extractArticleBody() {
+    return _data!.content
+        .where((item) => item.type == ContentType.text)
+        .map((item) => item.value)
+        .join('\n\n')
+        .substring(0, min(5000, _data!.content.length));
   }
 
   void _addHiddenH1(String text) {
@@ -310,179 +729,27 @@ class _TutorialPageState extends State<TutorialPage>
     html.document.body?.append(h1);
   }
 
-  void _injectInternalLinks() {
-    if (!kIsWeb || _data == null) return;
-
-    final div = html.DivElement()
-      ..style.position = 'absolute'
-      ..style.left = '-9999px';
-
-    for (var slug in _data!.relatedSlugs) {
-      final a = html.AnchorElement()
-        ..href = '/${widget.args.category}/$slug'
-        ..text = slug;
-      div.append(a);
-    }
-
-    html.document.body?.append(div);
-  }
-
-  void _injectContentHtml() {
-    if (!kIsWeb || _data == null) return;
-
-    final div = html.DivElement()
-      ..style.position = 'absolute'
-      ..style.left = '-9999px';
-
-    for (var item in _data!.content) {
-      if (item.type == ContentType.text || item.type == ContentType.heading) {
-        div.append(html.ParagraphElement()..text = item.value);
-      }
-    }
-
-    html.document.body?.append(div);
-  }
-
-  void _injectFaqHtml() {
-    if (!kIsWeb || _data == null || _data!.faq.isEmpty) return;
-
-    final container = html.DivElement()
-      ..style.position = 'absolute'
-      ..style.left = '-9999px';
-
-    for (var f in _data!.faq) {
-      final q = html.HeadingElement.h2()..text = f['question'];
-      final a = html.ParagraphElement()..text = f['answer'];
-      container.append(q);
-      container.append(a);
-    }
-
-    html.document.body?.append(container);
-  }
-
-  void _updateSeo() {
+  void _setupBreadcrumbs() {
     if (!kIsWeb) return;
-
-    String description =
-        'Learn ${_data!.title} with this interactive ${widget.args.category} tutorial.';
-    if (_data!.content.isNotEmpty) {
-      final firstText = _data!.content.firstWhere(
-        (item) => item.type == ContentType.text,
-        orElse: () => ContentItem(type: ContentType.text, value: description),
-      );
-      description = firstText.value.substring(
-        0,
-        min(160, firstText.value.length),
-      );
-    }
-
-    final metaTitle =
-        _data!.meta?['title'] ??
-        '${_data!.title} - ${widget.args.category.toUpperCase()} Tutorials';
-    final metaDescription = _data!.meta?['description'] ?? description;
-    final imageUrl =
-        _data!.meta?['image'] ?? 'https://revochamp.site/banner.png';
-
-    // Update main meta tags
-    MetaService.updateMetaTags(
-      title: metaTitle,
-      description: metaDescription,
+    
+    final parents = [
+      {
+        'name': '${widget.args.category.toUpperCase()} Tutorials',
+        'url': 'https://revochamp.site/tech/${widget.args.category}',
+      },
+    ];
+    
+    MetaService.setBreadcrumbData(
+      title: _data!.title,
       slug: '${widget.args.category}/${widget.args.slug}',
-      keywords: [widget.args.category, 'tutorial', _data!.title.toLowerCase()],
-      isArticle: true,
-      imageUrl: imageUrl,
-    );
-
-    // Add OG tags separately for social media
-    MetaService.setOGTags(
-      title: metaTitle,
-      description: metaDescription,
-      image: imageUrl,
-    );
-
-    // Add Twitter tags
-    MetaService.setTwitterTags(
-      title: metaTitle,
-      description: metaDescription,
-      image: imageUrl,
+      parents: parents,
     );
   }
 
-  void _updateStructuredData() {
-    final baseUrl = 'https://revochamp.site/tech';
-    // final pageId = '$baseUrl/${widget.args.category}/${widget.args.slug}';
-
-final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.args.slug}';
-    final structuredData = {
-      "@context": "https://schema.org",
-      "@type": "TechArticle",
-      "headline": _data!.title,
-      "description": _getDescription(),
-      "author": {
-        "@type": "Person",
-        "name": "${widget.args.category.toUpperCase()} Tutorials Team",
-      },
-      "datePublished": _data!.meta?['datePublished'] ?? "2025-01-01",
-      "dateModified":
-          _data!.meta?['dateModified'] ?? DateTime.now().toIso8601String(),
-      "image": _data!.meta?['image'] ?? "$baseUrl/icon.png",
-      "publisher": {
-        "@type": "Organization",
-        "name": "Revochamp",
-        "logo": {"@type": "ImageObject", "url": "$baseUrl/logo.png"},
-      },
-      "mainEntityOfPage": {"@type": "WebPage", "@id": pageId},
-    };
-
-    if (_data!.faq.isNotEmpty) {
-      final graph = [
-        structuredData,
-        {
-          "@type": "FAQPage",
-          "mainEntity": _data!.faq
-              .map(
-                (f) => {
-                  "@type": "Question",
-                  "name": f['question'],
-                  "acceptedAnswer": {"@type": "Answer", "text": f['answer']},
-                },
-              )
-              .toList(),
-        },
-      ];
-      MetaService.setStructuredData({
-        "@context": "https://schema.org",
-        "@graph": graph,
-      });
-    } else {
-      MetaService.setStructuredData(structuredData);
-    }
-  }
-
-  String _getDescription() {
-    if (_data!.content.isNotEmpty) {
-      final textItem = _data!.content.firstWhere(
-        (item) => item.type == ContentType.text,
-        orElse: () => ContentItem(type: ContentType.text, value: ''),
-      );
-      final value = textItem.value;
-      return value.substring(0, min(160, value.length));
-    }
-    return 'Interactive ${widget.args.category} tutorial about ${_data!.title}.';
-  }
-
+  // ==================== QUIZ FUNCTIONALITY ====================
   void _submitQuiz() {
     if (_quizStates.any((state) => state.selectedAnswer == null)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please answer all questions'),
-          backgroundColor: _card,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(12)),
-          ),
-        ),
-      );
+      _showSnackBar('Please answer all questions');
       return;
     }
 
@@ -498,6 +765,8 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
       _score = score;
       _quizSubmitted = true;
     });
+    
+    TutorialAnalytics.trackQuizSubmitted(widget.args.slug, score, _data!.quiz.length);
     _markCompleted();
   }
 
@@ -522,64 +791,41 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     });
   }
 
+  // ==================== CODE & COPY ====================
   void _copyCode(String code) {
     Clipboard.setData(ClipboardData(text: code));
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_rounded, color: _success, size: 16),
-            SizedBox(width: 8),
-            Text('Copied to clipboard', style: TextStyle(color: _textPrimary)),
-          ],
-        ),
-        backgroundColor: _card,
-        behavior: SnackBarBehavior.floating,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-        duration: const Duration(seconds: 1),
-      ),
-    );
+    _showSnackBar('Copied to clipboard');
+    TutorialAnalytics.trackCodeCopied(widget.args.slug, 'unknown');
   }
 
+  // ==================== NAVIGATION ====================
   void _goToPrevious() {
     final topics = widget.args.allTopics;
     if (topics.isEmpty) {
-      _showSnack('Loading topics... please wait');
+      _showSnackBar('Loading topics... please wait');
       return;
     }
     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
-    debugPrint(
-      'Previous - Current index: $currentIndex, Category: ${widget.args.category}',
-    );
 
     if (currentIndex > 0) {
-      final previousSlug = topics[currentIndex - 1].slug;
-      debugPrint('Navigating to: /${widget.args.category}/$previousSlug');
-      context.go('/${widget.args.category}/$previousSlug');
+      context.go('/${widget.args.category}/${topics[currentIndex - 1].slug}');
     } else {
-      _showSnack('This is the first tutorial');
+      _showSnackBar('This is the first tutorial');
     }
   }
 
   void _goToNext() {
     final topics = widget.args.allTopics;
     if (topics.isEmpty) {
-      _showSnack('Loading topics... please wait');
+      _showSnackBar('Loading topics... please wait');
       return;
     }
     final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
-    debugPrint(
-      'Next - Current index: $currentIndex, Category: ${widget.args.category}',
-    );
 
     if (currentIndex < topics.length - 1) {
-      final nextSlug = topics[currentIndex + 1].slug;
-      debugPrint('Navigating to: /${widget.args.category}/$nextSlug');
-      context.go('/${widget.args.category}/$nextSlug');
+      context.go('/${widget.args.category}/${topics[currentIndex + 1].slug}');
     } else {
-      _showSnack('You have completed all tutorials!');
+      _showSnackBar('🎉 Congratulations! You completed all tutorials!');
     }
   }
 
@@ -587,95 +833,157 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     final url =
         'https://revochamp.site/tech/${widget.args.category}/${widget.args.slug}';
     final title = _data!.title;
-    final text = 'Check out this tutorial: $title';
 
-    if (kIsWeb) {
-      // Try Web Share API first
-      if (html.window.navigator.share != null) {
-        html.window.navigator.share!({'title': title, 'text': text, 'url': url})
-            .catchError((error) {
-              _fallbackShare(url, title);
-            });
-      } else {
-        _fallbackShare(url, title);
-      }
+    if (kIsWeb && html.window.navigator.share != null) {
+      html.window.navigator.share!({'title': title, 'url': url})
+          .catchError((_) => _fallbackShare(url));
+    } else {
+      _fallbackShare(url);
     }
   }
 
-  void _fallbackShare(String url, String title) {
-    // Fallback: copy to clipboard
+  void _fallbackShare(String url) {
     Clipboard.setData(ClipboardData(text: url));
-    _showSnack('Link copied to clipboard! Share it with others.');
+    _showSnackBar('Link copied to clipboard!');
   }
 
-  void _showSnack(String msg) {
+  void _showSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg, style: const TextStyle(color: _textPrimary)),
-        backgroundColor: _card,
+        content: Text(message),
         behavior: SnackBarBehavior.floating,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
+        backgroundColor: PremiumTheme.richBlue,
         duration: const Duration(seconds: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
-  List<ContentItem> get _headings =>
-      _data?.content
-          .where((item) => item.type == ContentType.heading)
-          .toList() ??
-      [];
+  List<ContentItem> get _headings {
+    if (_data == null) return [];
+    return _data!.content
+        .where((item) => item.type == ContentType.heading)
+        .toList();
+  }
 
   void _scrollToHeading(int index) {
-    if (index < _headingKeys.length &&
-        _headingKeys[index].currentContext != null) {
+    if (index < _headingKeys.length && _headingKeys[index].currentContext != null) {
       Scrollable.ensureVisible(
         _headingKeys[index].currentContext!,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOutCubic,
       );
+      setState(() => _currentSectionIndex = index);
     }
   }
 
-  // ─── BUILD ─────────────────────────────────────────────────────────────────
+  // ==================== BUILD METHODS ====================
 
   @override
   Widget build(BuildContext context) {
     if (_isLoading) return _buildLoadingScreen();
     if (_error != null) return _buildErrorScreen();
+    if (_data == null) return _buildErrorScreen();
 
     final isDesktop = MediaQuery.of(context).size.width > 1000;
 
     return Scaffold(
-      backgroundColor: _navy,
+      backgroundColor: Colors.white,
       appBar: _buildAppBar(),
-      floatingActionButton: _buildFABs(),
       body: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      title: Text(
+        _data?.title ?? 'Tutorial',
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: Colors.black87,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+      backgroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: false,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_rounded, color: Colors.black87),
+        onPressed: () {
+          if (context.canPop()) {
+            context.pop();
+          } else {
+            context.go('/${widget.args.category}');
+          }
+        },
+      ),
+      actions: [
+        if (_studyStreak > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    const Text('🔥 ', style: TextStyle(fontSize: 14)),
+                    Text(
+                      '$_studyStreak day streak',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        IconButton(
+          icon: const Icon(Icons.share_rounded),
+          onPressed: _shareTutorial,
+          tooltip: 'Share',
+        ),
+        IconButton(
+          icon: Icon(
+            _isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+            color: _isFavorite ? Colors.red : null,
+          ),
+          onPressed: _toggleFavorite,
+          tooltip: _isFavorite ? 'Remove from favorites' : 'Add to favorites',
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(2),
+        child: LinearProgressIndicator(
+          value: _scrollProgress,
+          minHeight: 2,
+          backgroundColor: Colors.grey.shade200,
+          valueColor: const AlwaysStoppedAnimation(PremiumTheme.richBlue),
+        ),
+      ),
     );
   }
 
   Widget _buildLoadingScreen() {
     return Scaffold(
-      backgroundColor: _navy,
+      backgroundColor: Colors.white,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              width: 44,
-              height: 44,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: const AlwaysStoppedAnimation(_accent),
-                backgroundColor: _border,
-              ),
-            ),
+            const CircularProgressIndicator(),
             const SizedBox(height: 16),
             const Text(
               'Loading tutorial...',
-              style: TextStyle(color: _textSecondary, fontSize: 14),
+              style: TextStyle(color: Colors.grey),
             ),
           ],
         ),
@@ -685,193 +993,31 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
 
   Widget _buildErrorScreen() {
     return Scaffold(
-      backgroundColor: _navy,
+      backgroundColor: Colors.white,
       body: Center(
-        child: Container(
-          margin: const EdgeInsets.all(24),
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            color: _card,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.red.withValues(alpha: 0.1),
-                ),
-                child: const Icon(
-                  Icons.error_outline_rounded,
-                  color: Colors.redAccent,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                style: const TextStyle(color: Colors.redAccent, fontSize: 14),
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() => _isLoading = true);
-                  _loadTutorial();
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accent,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              _error ?? 'Something went wrong',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isLoading = true;
+                  _error = null;
+                });
+                _loadTutorial();
+              },
+              child: const Text('Try Again'),
+            ),
+          ],
         ),
       ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(66),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _surface,
-          border: const Border(bottom: BorderSide(color: _border, width: 1)),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              SizedBox(
-                height: 58,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    children: [
-                      _AppBarButton(
-                        icon: Icons.arrow_back_ios_rounded,
-                        onTap: () {
-                          if (context.canPop()) {
-                            context.pop();
-                          } else {
-                            context.go('/${widget.args.category}');
-                          }
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _data!.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w700,
-                                color: _textPrimary,
-                                letterSpacing: -0.2,
-                              ),
-                            ),
-                            if (_data!.difficulty.isNotEmpty ||
-                                _data!.readTime.isNotEmpty)
-                              Row(
-                                children: [
-                                  if (_data!.difficulty.isNotEmpty) ...[
-                                    _AppBarChip(_data!.difficulty),
-                                    const SizedBox(width: 6),
-                                  ],
-                                  if (_data!.readTime.isNotEmpty)
-                                    Text(
-                                      '· ${_data!.readTime}',
-                                      style: const TextStyle(
-                                        fontSize: 11,
-                                        color: _textMuted,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _accentSoft,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: _accent.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Text(
-                          '${(_scrollProgress * 100).toInt()}%',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: _accentGlow,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      _AppBarButton(
-                        icon: Icons.share_rounded,
-                        onTap: _shareTutorial,
-                      ),
-                      _AppBarButton(
-                        icon: Icons.copy_rounded,
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(text: _data!.title));
-                          _showSnack('Title copied');
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              LinearProgressIndicator(
-                value: _scrollProgress,
-                minHeight: 2,
-                backgroundColor: _border,
-                valueColor: const AlwaysStoppedAnimation(_accent),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFABs() {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _NavFAB(
-          heroTag: 'prev',
-          icon: Icons.arrow_upward_rounded,
-          onTap: _goToPrevious,
-          tooltip: 'Previous',
-        ),
-        const SizedBox(height: 10),
-        _NavFAB(
-          heroTag: 'next',
-          icon: Icons.arrow_downward_rounded,
-          onTap: _goToNext,
-          tooltip: 'Next',
-          isPrimary: true,
-        ),
-      ],
     );
   }
 
@@ -879,287 +1025,350 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 270,
-          child: Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: _border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: _accentSoft,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.list_rounded,
-                          color: _accentGlow,
-                          size: 16,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Contents',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: _textPrimary,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(height: 1, color: _border),
-                Expanded(
-                  child: ListView.builder(
-                    controller: _sideMenuController,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    itemCount: _headings.length,
-                    itemBuilder: (context, index) {
-                      final item = _headings[index];
-                      final isActive = index == _currentSectionIndex;
-                      return MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () {
-                            _scrollToHeading(index);
-                            setState(() => _currentSectionIndex = index);
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            margin: const EdgeInsets.symmetric(vertical: 2),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 9,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: isActive
-                                  ? _accentSoft
-                                  : Colors.transparent,
-                            ),
-                            child: Row(
-                              children: [
-                                AnimatedContainer(
-                                  duration: const Duration(milliseconds: 180),
-                                  width: 3,
-                                  height: 16,
-                                  margin: const EdgeInsets.only(right: 10),
-                                  decoration: BoxDecoration(
-                                    color: isActive ? _accent : _border,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    item.value,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: isActive
-                                          ? FontWeight.w600
-                                          : FontWeight.w400,
-                                      color: isActive
-                                          ? _accentGlow
-                                          : _textSecondary,
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        height: 1,
-                        color: _border,
-                        margin: const EdgeInsets.only(bottom: 10),
-                      ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: _scrollProgress,
-                          minHeight: 4,
-                          backgroundColor: _border,
-                          valueColor: const AlwaysStoppedAnimation(_accent),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        '${(_scrollProgress * 100).toInt()}% read',
-                        style: const TextStyle(fontSize: 11, color: _textMuted),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        _buildLeftSidebar(),
         Expanded(
-          child: Center(
+          child: SingleChildScrollView(
+            controller: _scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 860),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: KeyedSubtree(
-                  key: _contentKey,
-                  child: Scrollbar(
-                    controller: _scrollController,
-                    thumbVisibility: true,
-                    child: ListView(
-                      controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(24, 20, 24, 40),
-                      children: [
-                        ..._buildContentItems(),
-                        const SizedBox(height: 20),
-                        _buildEditorSection(),
-                        const SizedBox(height: 40),
-                        if (_data!.quiz.isNotEmpty) _buildQuizSection(),
-                        if (_data!.faq.isNotEmpty) _buildFaqSection(),
-                        if (_data!.relatedSlugs.isNotEmpty)
-                          _buildRelatedSection(),
-                        const SizedBox(height: 30),
-                        buildAdPlaceholder(height: 120, label: "Sponsored"),
-                        _buildNavigationButtons(),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout() {
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 900),
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: KeyedSubtree(
-            key: _contentKey,
-            child: Scrollbar(
-              controller: _scrollController,
-              child: ListView(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
+              constraints: const BoxConstraints(maxWidth: 900),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_headings.isNotEmpty) _buildMobileToc(),
-                  ..._buildContentItems(),
-                  const SizedBox(height: 20),
-                  _buildEditorSection(),
+                  _buildEnhancedHeroHeader(),
                   const SizedBox(height: 40),
+                  ..._buildContentItems(),
+                  const SizedBox(height: 50),
+                  _buildEditorSection(),
+                  const SizedBox(height: 50),
                   if (_data!.quiz.isNotEmpty) _buildQuizSection(),
                   if (_data!.faq.isNotEmpty) _buildFaqSection(),
-                  if (_data!.relatedSlugs.isNotEmpty) _buildRelatedSection(),
-                  const SizedBox(height: 30),
-                  buildAdPlaceholder(height: 120, label: "Sponsored"),
+                  const SizedBox(height: 40),
                   _buildNavigationButtons(),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
           ),
         ),
+        _buildRightSidebar(),
+      ],
+    );
+  }
+
+  Widget _buildLeftSidebar() {
+    return Container(
+      width: 280,
+      decoration: BoxDecoration(
+        border: Border(right: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Icon(Icons.menu_book, color: PremiumTheme.richBlue),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Contents',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: PremiumTheme.richBlue.withValues(alpha:0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${_headings.length}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: PremiumTheme.richBlue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
+          Expanded(
+            child: ListView.builder(
+              controller: _sideMenuController,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              itemCount: _headings.length,
+              itemBuilder: (context, index) {
+                final item = _headings[index];
+                final isActive = index == _currentSectionIndex;
+                return _buildSidebarItem(item.value, index, isActive);
+              },
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: Colors.grey.shade200)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Progress', style: TextStyle(fontSize: 12)),
+                    Text(
+                      '${(_scrollProgress * 100).toInt()}%',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: PremiumTheme.richBlue,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                LinearProgressIndicator(
+                  value: _scrollProgress,
+                  backgroundColor: Colors.grey.shade200,
+                  color: PremiumTheme.richBlue,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRightSidebar() {
+    return Container(
+      width: 260,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        border: Border(left: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Quick Links',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: PremiumTheme.textLight,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ..._data!.relatedSlugs.take(4).map((slug) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: GestureDetector(
+                onTap: () => context.go('/${widget.args.category}/$slug'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_forward, size: 14, color: PremiumTheme.richBlue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          slug.replaceAll('-', ' '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: PremiumTheme.richBlue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnhancedHeroHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () => context.go('/${widget.args.category}'),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: PremiumTheme.richBlue.withValues(alpha:0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              widget.args.category.toUpperCase(),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: PremiumTheme.richBlue,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          _data!.title,
+          style: const TextStyle(
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
+            height: 1.2,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (_data!.subtitle.isNotEmpty)
+          Text(
+            _data!.subtitle,
+            style: const TextStyle(fontSize: 16, color: Colors.grey),
+          ),
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 12,
+          runSpacing: 10,
+          children: [
+            if (_data!.difficulty.isNotEmpty)
+              _buildMetaChip(
+                icon: Icons.signal_cellular_alt,
+                label: _data!.difficulty,
+              ),
+            if (_data!.readTime.isNotEmpty)
+              _buildMetaChip(
+                icon: Icons.access_time,
+                label: _data!.readTime,
+              ),
+            _buildMetaChip(
+              icon: Icons.quiz,
+              label: '${_data!.quiz.length} Quizzes',
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetaChip({
+    required IconData icon,
+    required String label,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSidebarItem(String title, int index, bool isActive) {
+    return InkWell(
+      onTap: () => _scrollToHeading(index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isActive ? PremiumTheme.richBlue.withValues(alpha:0.05) : null,
+          border: Border(
+            left: BorderSide(
+              color: isActive ? PremiumTheme.richBlue : Colors.transparent,
+              width: 3,
+            ),
+          ),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            color: isActive ? PremiumTheme.richBlue : Colors.grey.shade700,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return SingleChildScrollView(
+      controller: _scrollController,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildEnhancedHeroHeader(),
+          const SizedBox(height: 24),
+          if (_headings.isNotEmpty) _buildMobileToc(),
+          const SizedBox(height: 24),
+          ..._buildContentItems(),
+          const SizedBox(height: 24),
+          _buildEditorSection(),
+          const SizedBox(height: 32),
+          if (_data!.quiz.isNotEmpty) _buildQuizSection(),
+          if (_data!.faq.isNotEmpty) _buildFaqSection(),
+          const SizedBox(height: 32),
+          _buildNavigationButtons(),
+        ],
       ),
     );
   }
 
   Widget _buildMobileToc() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _border),
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: _accentSoft,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: const Icon(
-                  Icons.list_rounded,
-                  color: _accentGlow,
-                  size: 14,
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'Contents',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: _textPrimary,
-                ),
-              ),
-            ],
+          const Text(
+            'In this tutorial',
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 6,
-            runSpacing: 6,
+            spacing: 8,
+            runSpacing: 8,
             children: _headings.asMap().entries.map((entry) {
               final idx = entry.key;
               final heading = entry.value;
-              final hasValidKey = idx < _headingKeys.length;
               return GestureDetector(
-                onTap: hasValidKey ? () => _scrollToHeading(idx) : null,
+                onTap: () => _scrollToHeading(idx),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: _accentSoft,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _accent.withValues(alpha: 0.25)),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Text(
                     heading.value,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: _accentGlow,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 12, color: PremiumTheme.richBlue),
                   ),
                 ),
               );
@@ -1173,16 +1382,15 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
   List<Widget> _buildContentItems() {
     List<Widget> widgets = [];
     int headingIdx = 0;
-    const adFrequency = 3;
 
     for (int i = 0; i < _data!.content.length; i++) {
       final item = _data!.content[i];
+      
       if (item.type == ContentType.heading) {
         widgets.add(
           Container(
-            key: headingIdx < _headingKeys.length
-                ? _headingKeys[headingIdx]
-                : null,
+            key: headingIdx < _headingKeys.length ? _headingKeys[headingIdx] : null,
+            margin: const EdgeInsets.only(top: 24, bottom: 12),
             child: ContentItemWidget(item: item, onCopy: _copyCode),
           ),
         );
@@ -1190,27 +1398,10 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
       } else {
         widgets.add(
           Container(
-            margin: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _border),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(6),
-              child: ContentItemWidget(item: item, onCopy: _copyCode),
-            ),
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            child: ContentItemWidget(item: item, onCopy: _copyCode),
           ),
         );
-      }
-      widgets.add(const SizedBox(height: 10));
-
-      if (i > 0 &&
-          i % adFrequency == 0 &&
-          _data!.content[i].type != ContentType.heading &&
-          _data!.content[i - 1].type != ContentType.heading) {
-        widgets.add(buildAdPlaceholder(height: 120, label: 'Sponsored'));
-        widgets.add(const SizedBox(height: 16));
       }
     }
     return widgets;
@@ -1220,19 +1411,18 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionLabel(icon: Icons.edit_rounded, label: 'Try it Yourself'),
-        const SizedBox(height: 14),
+        _buildSectionHeader(
+          icon: Icons.edit_note,
+          title: 'Try it Yourself',
+          subtitle: 'Experiment with the code below',
+        ),
+        const SizedBox(height: 20),
         EditorWidget(
           codeController: _codeController,
           defaultCode: _data!.defaultCode,
           onCopy: _copyCode,
-          onRun: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Running code:\n${_codeController.text}')),
-            );
-          },
-          onReset: () =>
-              setState(() => _codeController.text = _data!.defaultCode),
+          onRun: () => _showSnackBar('Running your code...'),
+          onReset: () => setState(() => _codeController.text = _data!.defaultCode),
         ),
       ],
     );
@@ -1242,33 +1432,63 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionLabel(icon: Icons.quiz_rounded, label: 'Test Your Knowledge'),
-        if (!_quizSubmitted)
+        _buildSectionHeader(
+          icon: Icons.quiz,
+          title: 'Test Your Knowledge',
+          subtitle: '${_data!.quiz.length} questions',
+        ),
+        const SizedBox(height: 20),
+        for (int i = 0; i < _data!.quiz.length; i++)
           Padding(
-            padding: const EdgeInsets.only(top: 6, bottom: 6),
-            child: Text(
-              'Answer all ${_data!.quiz.length} question${_data!.quiz.length != 1 ? 's' : ''}',
-              style: const TextStyle(color: _textSecondary, fontSize: 13),
+            padding: const EdgeInsets.only(bottom: 16),
+            child: QuizCard(
+              index: i,
+              total: _data!.quiz.length,
+              question: _data!.quiz[i],
+              state: _quizStates[i],
+              submitted: _quizSubmitted,
+              onAnswerSelected: (answerIndex) {
+                if (!_quizSubmitted) {
+                  setState(() => _quizStates[i].selectedAnswer = answerIndex);
+                }
+              },
             ),
           ),
-        for (int i = 0; i < _data!.quiz.length; i++)
-          QuizCard(
-            index: i,
-            total: _data!.quiz.length,
-            question: _data!.quiz[i],
-            state: _quizStates[i],
-            submitted: _quizSubmitted,
-            onAnswerSelected: (answerIndex) {
-              if (!_quizSubmitted) {
-                setState(() => _quizStates[i].selectedAnswer = answerIndex);
-              }
-            },
-          ),
-        if (_quizSubmitted) ScoreCard(score: _score, total: _data!.quiz.length),
+        if (_quizSubmitted)
+          ScoreCard(score: _score, total: _data!.quiz.length),
         const SizedBox(height: 16),
-        QuizButtons(onSubmit: _submitQuiz, onReset: _resetQuiz),
-        const SizedBox(height: 30),
-        buildAdPlaceholder(height: 120, label: 'Sponsored'),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: _submitQuiz,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: PremiumTheme.richBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Submit Answers'),
+              ),
+            ),
+            if (_quizSubmitted) ...[
+              const SizedBox(width: 12),
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _resetQuiz,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Try Again'),
+                ),
+              ),
+            ],
+          ],
+        ),
       ],
     );
   }
@@ -1277,71 +1497,53 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 32),
-        _SectionLabel(
-          icon: Icons.help_outline_rounded,
-          label: 'Frequently Asked Questions',
+        _buildSectionHeader(
+          icon: Icons.help,
+          title: 'Frequently Asked Questions',
+          subtitle: 'Common questions about this topic',
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 20),
         ..._data!.faq.asMap().entries.map((entry) {
           final index = entry.key;
           final item = entry.value;
           return Container(
-            margin: const EdgeInsets.only(bottom: 10),
+            margin: const EdgeInsets.only(bottom: 12),
             decoration: BoxDecoration(
-              color: _card,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _border),
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
             ),
-            child: Theme(
-              data: Theme.of(
-                context,
-              ).copyWith(dividerColor: Colors.transparent),
-              child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 4,
+            child: ExpansionTile(
+              leading: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: PremiumTheme.richBlue.withValues(alpha:0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                leading: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _accentSoft,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${index + 1}',
-                      style: const TextStyle(
-                        color: _accentGlow,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
+                child: Center(
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      color: PremiumTheme.richBlue,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                title: Text(
-                  item['question'] ?? '',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: _textPrimary,
-                  ),
-                ),
-                iconColor: _textSecondary,
-                collapsedIconColor: _textMuted,
-                children: [
-                  Text(
-                    item['answer'] ?? '',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: _textSecondary,
-                      height: 1.6,
-                    ),
-                  ),
-                ],
               ),
+              title: Text(
+                item['question'] ?? '',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    item['answer'] ?? '',
+                    style: const TextStyle(color: Colors.grey, height: 1.5),
+                  ),
+                ),
+              ],
             ),
           );
         }),
@@ -1349,63 +1551,49 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
     );
   }
 
-  Widget _buildRelatedSection() {
+  Widget _buildSectionHeader({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 32),
-        Container(height: 1, color: _border),
-        const SizedBox(height: 20),
-        _SectionLabel(icon: Icons.link_rounded, label: 'Related Topics'),
-        const SizedBox(height: 14),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: _data!.relatedSlugs.map((slug) {
-            return GestureDetector(
-              onTap: () {
-                context.go('/${widget.args.category}/$slug');
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: _card,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _accent.withValues(alpha: 0.35)),
-                ),
-                child: Text(
-                  slug
-                      .replaceFirst('${widget.args.category}-', '')
-                      .replaceAll('-', ' '),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: _accentGlow,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+        Row(
+          children: [
+            Icon(icon, color: PremiumTheme.richBlue),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-            );
-          }).toList(),
+            ),
+          ],
         ),
+        if (subtitle != null) ...[
+          const SizedBox(height: 8),
+          Text(subtitle, style: const TextStyle(color: Colors.grey)),
+        ],
       ],
     );
   }
 
   Widget _buildNavigationButtons() {
+    final topics = widget.args.allTopics;
+    final currentIndex = topics.indexWhere((t) => t.slug == widget.args.slug);
+    final isFirst = currentIndex <= 0;
+    final isLast = currentIndex >= topics.length - 1;
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: _goToPrevious,
-            icon: const Icon(Icons.arrow_back_rounded, size: 18),
+            onPressed: isFirst ? null : _goToPrevious,
+            icon: const Icon(Icons.arrow_back, size: 18),
             label: const Text('Previous'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: _textPrimary,
-              side: const BorderSide(color: _border),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1416,12 +1604,11 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
         const SizedBox(width: 16),
         Expanded(
           child: ElevatedButton.icon(
-            onPressed: _goToNext,
-            icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-            label: const Text('Next'),
+            onPressed: isLast ? null : _goToNext,
+            icon: const Icon(Icons.arrow_forward, size: 18),
+            label: Text(isLast ? 'Completed' : 'Next'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: _accent,
-              foregroundColor: Colors.white,
+              backgroundColor: isLast ? Colors.green : PremiumTheme.richBlue,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -1430,173 +1617,6 @@ final pageId = 'https://revochamp.site/tech/${widget.args.category}/${widget.arg
           ),
         ),
       ],
-    );
-  }
-
-  Widget buildAdPlaceholder({
-    double height = 110,
-    String label = 'Advertisement',
-    bool isLoading = false,
-  }) {
-    return Container(
-      height: height,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: _card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _border),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: 8,
-            right: 10,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-              decoration: BoxDecoration(
-                color: _border,
-                borderRadius: BorderRadius.circular(5),
-              ),
-              child: Text(
-                'Ad',
-                style: TextStyle(fontSize: 10, color: _textMuted),
-              ),
-            ),
-          ),
-          AdsenseAd(adSlot: "1234567890"),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Helper widgets ────────────────────────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _SectionLabel({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 2),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: _accentSoft,
-              borderRadius: BorderRadius.circular(9),
-            ),
-            child: Icon(icon, color: _accentGlow, size: 17),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: _textPrimary,
-              letterSpacing: -0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AppBarButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  const _AppBarButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _border),
-        ),
-        child: Icon(icon, color: _textSecondary, size: 17),
-      ),
-    );
-  }
-}
-
-class _AppBarChip extends StatelessWidget {
-  final String label;
-  const _AppBarChip(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-      decoration: BoxDecoration(
-        color: _accentSoft,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 10,
-          color: _accentGlow,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
-class _NavFAB extends StatelessWidget {
-  final String heroTag;
-  final IconData icon;
-  final VoidCallback onTap;
-  final String tooltip;
-  final bool isPrimary;
-
-  const _NavFAB({
-    required this.heroTag,
-    required this.icon,
-    required this.onTap,
-    required this.tooltip,
-    this.isPrimary = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: isPrimary ? _accent : _card,
-            shape: BoxShape.circle,
-            border: Border.all(color: isPrimary ? _accent : _border),
-            boxShadow: [
-              BoxShadow(
-                color: isPrimary
-                    ? _accent.withValues(alpha: 0.3)
-                    : Colors.black26,
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Icon(icon, color: Colors.white, size: 18),
-        ),
-      ),
     );
   }
 }

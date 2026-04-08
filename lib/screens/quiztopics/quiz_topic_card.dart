@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:techtutorial/models/tutorial_topic.dart';
 
-class TopicCard extends StatefulWidget {
+class QuizTopicCard extends StatefulWidget {
   final TutorialTopic topic;
   final bool isCompleted;
   final VoidCallback onTap;
 
-  const TopicCard({
+  const QuizTopicCard({
     super.key,
     required this.topic,
     required this.isCompleted,
@@ -14,10 +14,10 @@ class TopicCard extends StatefulWidget {
   });
 
   @override
-  State<TopicCard> createState() => _TopicCardState();
+  State<QuizTopicCard> createState() => _QuizTopicCardState();
 }
 
-class _TopicCardState extends State<TopicCard>
+class _QuizTopicCardState extends State<QuizTopicCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _hoverController;
   late Animation<double> _scaleAnimation;

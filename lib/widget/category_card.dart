@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:techtutorial/core/theme.dart';
 
-import '../screens/home.dart';
 
 class CategoryCard extends StatelessWidget {
   final String name;

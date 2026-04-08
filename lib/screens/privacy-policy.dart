@@ -18,9 +18,9 @@ class _PrivacyPageState extends State<PrivacyPage> {
     super.initState();
 
     MetaService.updateMetaTags(
-      title: "Privacy Policy | RevoLearn Data Protection & Security",
+      title: "Privacy Policy | RevoChamp Data Protection & Security",
       description:
-          "Read RevoLearn privacy policy to understand how we collect, use, and protect your data securely.",
+          "Read RevoChamp privacy policy to understand how we collect, use, and protect your data securely.",
       slug: "privacy",
     );
     MetaService.setStructuredData({
@@ -28,7 +28,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
       "@type": "WebPage",
       "name": "Privacy Policy",
       "description":
-          "Read RevoLearn privacy policy to understand how we collect, use, and protect your data securely.",
+          "Read RevoChamp privacy policy to understand how we collect, use, and protect your data securely.",
       "url": "https://revochamp.site/tech/privacy",
       "inLanguage": "en",
 
@@ -39,7 +39,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
 
       "dateModified": "2026-01-01",
 
-      "publisher": {"@type": "Organization", "name": "RevoLearn"},
+      "publisher": {"@type": "Organization", "name": "RevoChamp"},
     });
     MetaService.setBreadcrumbData(
       title: "Privacy Policy",
@@ -69,7 +69,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
           // App Bar
           SliverAppBar(
             pinned: true,
-            backgroundColor: Colors.white.withOpacity(0.95),
+            backgroundColor: Colors.white.withValues(alpha:0.95),
             elevation: 0,
             scrolledUnderElevation: 0,
             surfaceTintColor: Colors.transparent,
@@ -116,7 +116,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
               preferredSize: const Size.fromHeight(1),
               child: Container(
                 height: 1,
-                color: PremiumTheme.lightGray.withOpacity(0.6),
+                color: PremiumTheme.lightGray.withValues(alpha:0.6),
               ),
             ),
           ),
@@ -370,22 +370,22 @@ class _PrivacyPageState extends State<PrivacyPage> {
                         padding: const EdgeInsets.all(24),
                         children: const [
                           _ContactCard(
-                            email: "privacy@revolearn.com",
+                            email: "privacy@RevoChamp.com",
                             icon: "🔒",
                             label: "Privacy Concerns",
                           ),
                           _ContactCard(
-                            email: "data@revolearn.com",
+                            email: "data@RevoChamp.com",
                             icon: "📊",
                             label: "Data Requests",
                           ),
                           _ContactCard(
-                            email: "support@revolearn.com",
+                            email: "support@RevoChamp.com",
                             icon: "💬",
                             label: "General Support",
                           ),
                           _ContactCard(
-                            email: "security@revolearn.com",
+                            email: "security@RevoChamp.com",
                             icon: "🛡️",
                             label: "Security Issues",
                           ),
@@ -570,7 +570,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
           shrinkWrap: true,
           mainAxisSpacing: 24,
           crossAxisSpacing: 24,
-          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 2.5,
+          childAspectRatio: constraints.maxWidth > 900 ? 1.5 : 1.8,
           physics: const NeverScrollableScrollPhysics(),
           children: const [
             _PolicyCard(
